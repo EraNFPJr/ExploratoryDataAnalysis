@@ -1,0 +1,365 @@
+---
+title: "Relatório do Projeto de Disciplina"
+subtitle: "Análise Exploratória de Dados"
+author: "Eraldo N. Ferreira Pinto Júnior"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.align = 'center', fig.path = 'Images', fig.dim = c(6, 4))
+knitr::opts_knit$set(root.dir = 'D:/Study/Infnet/DataScience/ExploratoryDataAnalysis/Workspace/GitHub/ExploratoryDataAnalysis')
+```
+
+# Sumário
+
+**[Introdução](#introdução)**
+
+**[Dos Dados]**
+
+**[Contexto](#contexto)**
+
+
+# Introdução
+
+Inserir texto.
+
+## Dos Dados
+
+### Contexto
+
+Inserir texto
+
+### Fonte dos dados
+
+*Informações sobre o levantamento de preços de combustíveis*
+**Fonte**<https://www.gov.br/anp/pt-br/assuntos/precos-e-defesa-da-concorrencia/precos/precos-revenda-e-de-distribuicao-combustiveis/informacoes-levantamento-de-precos-de-combustiveis>
+
+*Série Histórica do Preço de Combustível e de GLP*
+
+**Fonte:** <https://www.gov.br/anp/pt-br/centrais-de-conteudo/dados-abertos/serie-historica-de-precos-de-combustiveis>
+
+*Série Histórica do Brent*
+
+**Fonte:** <https://www.eia.gov/dnav/pet/hist/rbrteM.htm>
+
+*Série Histórica da Taxa Cambial*
+
+**Fonte:** <https://www.bcb.gov.br/estabilidadefinanceira/historicocotacoes>
+
+
+# Preparando o Ambiente
+
+## Pacotes
+
+Durante a análise foi verificado a necessidade de utilização de alguns pacotes. A lista de pacotes utilizados encontra-se abaixo:
+
+```{r Lista de pacotes, echo=TRUE}
+# Lista com todos os pacotes
+package <- c("tidyverse", "ggplot2", "summarytools", "data.table", "knitr", "dlookr")
+```
+
+
+
+```{r Instalando pacotes, echo=TRUE}
+# Veritifica se o Pacote está instalado e o instala se for necessário.
+is_installed <- package %in% rownames(installed.packages())
+
+if(any(is_installed == FALSE)){
+  install.packages(package[!is_installed])
+}
+```
+
+```{r Carga dos pacotes, echo=TRUE}
+# Carregando os Pacotes
+invisible(lapply(package, library, character.only = TRUE))
+```
+
+```{r Removendo variáveis desnecessárias, echo=TRUE}
+# Removendo variáveis desnecessárias
+rm(list=ls())
+```
+
+## Funções Criadas
+
+```{r Funções para transformação das dadas, echo=TRUE}
+transform_date_one <- function(data){
+  partes_da_data <- strsplit(data, "[/.]")
+  ano <- as.numeric(sapply(partes_da_data, `[`,3))
+  mes <- as.numeric(sapply(partes_da_data, `[`,2))
+
+  data_formatada <- format_data(ano, mes)
+  #data_formatada <- as.Date(sprintf("%04d-%02d-01", ano, mes))
+
+  return(data_formatada)
+}
+
+transform_date_two <- function(data){
+  ano <- as.numeric(substr(data, nchar(data) - 3, nchar(data)))
+  mes <- as.numeric(substr(data, nchar(data) - 5, nchar(data) - 4))
+
+  data_formatada <- format_data(ano, mes)
+  #data_formatada <- as.Date(sprintf("%04d-%02d-01", ano, mes))
+
+  return(data_formatada)
+}
+
+transform_date_three <- function(data){
+  ano <- as.numeric(substr(data, nchar(data) - 3, nchar(data)))
+  mes_abreviado <- substr(data, nchar(data) - 7, nchar(data) - 5)
+  mes <- as.integer(match(mes_abreviado, month.abb))
+  
+  data_formatada <- format_data(ano, mes)
+  #data_formatada <- as.Date(sprintf("%04d-%02d-01", ano, mes))
+
+  return(data_formatada)
+}
+
+format_data <- function(ano_data, mes_data){
+  data_formatada <- as.Date(sprintf("%04d-%02d-01", ano_data, mes_data))
+  return(data_formatada)
+}
+```
+
+
+```{r Extrator de dados para vários arquivos, echo=TRUE}
+extractor_csv2 = function(dados){
+  readr::read_csv2(dados, locale = locale(encoding = 'latin1'), show_col_types = FALSE)
+}
+
+extractor_csv = function(dados){
+  read.csv(dados, header = FALSE, sep = ";", dec = ",")
+}
+```
+
+
+```{r Geradoras de binwidths FD e S, echo = TRUE}
+
+fd <- function(x) {
+  n <-length(x)
+  return((2*IQR(x))/n^(1/3))
+}
+
+
+sr <- function(x) {
+  n <-length(x)
+  return((3.49*sd(x))/n^(1/3))
+}
+
+```
+
+# Carga dos Dados
+
+
+```{r Carga de dados dos combustíveis, echo=TRUE}
+arquivos <- list.files(pattern = "^ca-", recursive = TRUE)
+combustivel_agg <- map_dfr(arquivos, extractor_csv2)
+
+rm("arquivos")
+```
+
+
+```{r Carga de dados do câmbio, echo = TRUE}
+arquivos <- list.files(pattern = "^CotacoesMoedasPeriodo", recursive = TRUE)
+cambio_agg <- map_dfr(arquivos, extractor_csv)
+
+rm("arquivos")
+```
+
+
+```{r Carga de dados do brent, echo = TRUE}
+brent <- read.table("Dataset/Brent/Europe_Brent_Spot_Price_FOB.csv", sep=",",header = TRUE)
+colnames(brent) <- c("Data", "Preco USD/Barril")
+```
+
+# Visão Inicial dos Dados
+
+```{r Visão geral dos dados, echo = TRUE}
+head(combustivel_agg)
+
+head(cambio_agg)
+
+head(brent)
+```
+
+# Tratamento das Datas
+
+```{r Padronizando a formatação das datas, echo=TRUE}
+combustivel_agg$`Data da Coleta` <- transform_date_one(combustivel_agg$`Data da Coleta`)
+brent$Data <- transform_date_three(brent$Data)
+cambio_agg$V1 <- transform_date_two(cambio_agg$V1)
+```
+
+
+# Análise das Bases de Dados
+## Base de Dados Combustíveis
+
+```{r Conhecendo as variáveis da base de dados combustível, echo = TRUE}
+str(combustivel_agg)
+```
+
+As variáveis deste contjunto de dados pode ser classificadas como:
+
+Variável          |     Classificação
+----------------  |     ----------------
+Regiao - Sigla    |    Qualitativa nominal
+Estado - Sigla    |    Qualitativa nominal
+Municipio         |    Qualitativa nominal
+Revenda           |    Qualitativa nominal
+CNPJ da Revenda   |    Qualitativa nominal
+Nome da Rua       |    Qualitativa nominal
+Numero Rua        |    Qualitativa nominal
+Complemento       |    Qualitativa nominal
+Bairro            |    Qualitativa nominal
+Cep               |    Qualitativa nominal
+Produto           |    Qualitativa nominal
+Data da Coleta    |    Qualitativa nominal
+Valor de Venda    |    Quantitativa contínua
+Valor de Compra   |    Quantitativa contínua
+Unidade de Medida |    Qualitativa nominal
+Bandeira          |    Qualitativa nominal
+
+***
+
+No Brasil, a pesquisa foi realizada:
+
+```{r Visão geral da pesquisa em âmbito nacional, echo=TRUE}
+combustivel_agg %>% dlookr::diagnose()
+```
+
+* Em 5 regiões.
+* Em 27 estados.
+* Em 699 municípios.
+* Em 35.554 revendas por CNPJ.
+* Considerando 7 produtos comercializados.
+* E o missing do Valor de Compra foi de 12.706.378, o qual representa 55% da base de dados.
+* Em 268 bandeiras diferentes.
+
+* As variáveis de interesse nesta base de dados são:
+   + Regiao - Sigla
+   + Estado - Sigla
+   + Municipio
+   + CNPJ da Revenda
+   + Produto
+   + Data da Coleta
+   + Valor de Venda
+   + Valor de Compra
+   + Unidade de Medida
+   + Bandeira
+
+***
+
+A única variável de interesse que possui missing é a Valor de Compra.
+
+Para uma melhor compreensão dos missing existentes nesta variável, algumas investigações foram feitas:
+
+```{r Quantidade de missing da variável Valor de Compra por Estado, echo=TRUE}
+df <- combustivel_agg %>%
+  group_by(`Estado - Sigla`) %>%
+  mutate(n_linhas = 1) %>%
+  summarise(n_missing = sum(is.na(`Valor de Compra`))) %>%
+  arrange(desc(n_missing))
+
+kable(df, format="latex")
+```
+
+```{r Gráfico da quantidade de missing da variável Valor de Compra por Estado, echo=TRUE}
+ggplot(df, aes(x = reorder(`Estado - Sigla`, n_missing, decreasing = TRUE), y = n_missing)) + 
+   geom_bar(stat = "identity") + 
+   labs(x = "Estado", y = "Qtd de Missing", subtitle = "Variável Valor de Compra") + 
+   scale_y_continuous(labels = scales::comma_format()) + 
+   ggtitle("Análise de Missing por Estado") +
+   theme(plot.title = element_text(hjust = 0.5),
+         plot.subtitle = element_text(hjust = 0.5, size = 10)) + 
+   scale_fill_brewer(palette = "Set1")
+
+rm("df")
+```
+
+```{r Porcentagem de missing da variável Valor de Compra por Estado, echo=TRUE}
+df <- combustivel_agg %>%
+  group_by(`Estado - Sigla`) %>%
+  mutate(n_linhas = 1) %>%
+  summarise(n_missing = sum(is.na(`Valor de Compra`)),
+            n_linhas = sum(n_linhas), porcentagem_missing = round(n_missing / n_linhas, 2)) %>%
+  arrange(desc(porcentagem_missing))
+
+kable(df, format="latex")
+```
+
+
+```{r Gráfico da porcentagem de missing da variável Valor de Compra por Estado, echo=TRUE}
+ggplot(df, aes(x = reorder(`Estado - Sigla`, porcentagem_missing, decreasing = TRUE), y = porcentagem_missing)) + 
+   geom_bar(stat = "identity") + 
+   labs(x = "Estado", y = "Porcentagem de Missing", subtitle = "Variável Valor de Compra") + 
+   scale_y_continuous(labels = scales::percent_format()) + 
+   ggtitle("Porcentagem de Missing por Estado") +
+   theme(plot.title = element_text(hjust = 0.5),
+         plot.subtitle = element_text(hjust = 0.5, size = 10)) + 
+   geom_text(aes(label = porcentagem_missing), angle = 90, vjust = 0.5, hjust = 1.5)
+
+
+rm("df")
+```
+
+```{r Quantidade de missing da variável Valor de Compra por Região, echo=TRUE}
+df <- combustivel_agg %>%
+  group_by(`Regiao - Sigla`) %>%
+  mutate(n_linhas = 1) %>%
+  summarise(n_missing = sum(is.na(`Valor de Compra`))) %>%
+  arrange(desc(n_missing))
+
+kable(df, format="latex")
+
+df
+```
+
+```{r Gráfico da quantidade de missing da variável Valor de Compra por Região, echo=TRUE}
+ggplot(df, aes(x = reorder(`Regiao - Sigla`, n_missing, decreasing = TRUE), y = n_missing)) + 
+   geom_bar(stat = "identity") + 
+   labs(x = "Região", y = "Qtd de Missing", subtitle = "Variável Valor de Compra") + 
+   scale_y_continuous(labels = scales::comma_format()) + 
+   ggtitle("Análise de Missing por Região") +
+   theme(plot.title = element_text(hjust = 0.5),
+         plot.subtitle = element_text(hjust = 0.5, size = 10)) + 
+   scale_fill_brewer(palette = "Set1")
+
+rm("df")
+```
+
+```{r Porcentagem de missing da variável Valor de Compra por Região, echo=TRUE}
+df <- combustivel_agg %>%
+  group_by(`Regiao - Sigla`) %>%
+  mutate(n_linhas = 1) %>%
+  summarise(n_missing = sum(is.na(`Valor de Compra`)),
+            n_linhas = sum(n_linhas), porcentagem_missing = round(n_missing / n_linhas, 2)) %>%
+  arrange(desc(porcentagem_missing))
+
+kable(df, format="latex")
+
+df
+```
+
+
+```{r Gráfico da porcentagem de missing da variável Valor de Compra por Região, echo=TRUE}
+ggplot(df, aes(x = reorder(`Regiao - Sigla`, porcentagem_missing, decreasing = TRUE), y = porcentagem_missing)) + 
+   geom_bar(stat = "identity") + 
+   labs(x = "Região", y = "Porcentagem de Missing", subtitle = "Variável Valor de Compra") + 
+   scale_y_continuous(labels = scales::percent_format()) + 
+   ggtitle("Porcentagem de Missing por Região") +
+   theme(plot.title = element_text(hjust = 0.5),
+         plot.subtitle = element_text(hjust = 0.5, size = 10)) + 
+   geom_text(aes(label = porcentagem_missing), vjust = 1.5)
+
+
+rm("df")
+```
+
+## Base de Dados Câmbio
+str(cambio_agg)
+
+
+## Base de Dados Brent
+str(brent)
+
+
