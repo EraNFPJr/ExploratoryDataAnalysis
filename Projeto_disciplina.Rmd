@@ -355,11 +355,23 @@ ggplot(df, aes(x = reorder(`Regiao - Sigla`, porcentagem_missing, decreasing = T
 rm("df")
 ```
 
+
 ## Base de Dados Câmbio
+```{r Conhecendo as variáveis da base de dados Câmbio, echo = TRUE}
 str(cambio_agg)
+
+cambio_agg %>% dlookr::diagnose()
+```
+
 
 
 ## Base de Dados Brent
+```{r Conhecendo as variáveis da base de dados Brent, echo = TRUE}
 str(brent)
+
+brent %>% dlookr::diagnose()
+```
+
+
 
 
