@@ -1149,21 +1149,16 @@ combustiveis %>%
 Considerando os resultados apresentados anteriormente pelos histogramas, o próximo passo visa realizar alguns testes para checar normalidade das variáveis.
 
 ```{r Teste de Shapiro-Wilk para checar normalidade, echo = FALSE}
-
-a <- combustiveis %>% 
-   dplyr::filter(Produto == "GASOLINA", UF == "RJ") %>% 
-   dplyr::filter(mes.ano %in% as.IDate("01-01-2020",format = "%d-%m-%Y")) %>% 
-   dplyr::select(Valor_de_Venda) 
-shapiro.test(a)
-
+#a <- combustiveis %>% 
+#   dplyr::filter(Produto == "GASOLINA", UF == "RJ") %>% 
+#   dplyr::filter(mes.ano %in% as.IDate("01-01-2020",format = "%d-%m-%Y")) %>% 
+#   dplyr::select(Valor_de_Venda) 
+#shapiro.test(a)
 ```
 
 ```{r qqplot pre pandemia, echo = FALSE}
-
 #qqnorm(combustiveis$Valor_de_Venda)
-
-qqplot(combustiveis$Valor_de_Venda)(qqnorm(combustiveis$Valor_de_Venda)) 
-
+#qqplot(combustiveis$Valor_de_Venda)(qqnorm(combustiveis$Valor_de_Venda)) 
 ```
 ##########################################
 
@@ -1451,13 +1446,13 @@ rm("df")
 
 ## Realizando teste de Little para checar se os dados faltantes são completamente aleatórios{#testelittle}
 
-```{r Teste de little para dados faltantes de valor_de_compra, echo = FALSE}
+```{r Teste de little para dados faltantes de valor_de_compra, echo = TRUE}
 combustiveis %>% dplyr::select(Valor_de_Compra) %>% naniar::mcar_test()
 ```
 
 ## Realizando a imputação de dados{#imputandodados}
 
-```{r Imputando dados, echo = FALSE}
+```{r Imputando dados, echo = TRUE}
 combustiveis1 <- combustiveis
 mice(combustiveis1, method ="norm.predict", seed = 1, m = 1, print = FALSE)
 ```
