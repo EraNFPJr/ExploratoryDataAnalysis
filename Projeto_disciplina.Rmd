@@ -3,23 +3,82 @@ title: "Relatório do Projeto de Disciplina"
 subtitle: "Análise Exploratória de Dados"
 author: "Eraldo N. Ferreira Pinto Júnior"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
+header-includes:
+- \usepackage{pdflscape}
+- \newcommand{\blandscape}{\begin{landscape}}
+- \newcommand{\elandscape}{\end{landscape}}
+- \usepackage[utf8]{inputenc}
 output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_knit$set(root.dir = 'D:/Study/Infnet/DataScience/ExploratoryDataAnalysis/Workspace/GitHub/ExploratoryDataAnalysis')
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.align = 'center', fig.path = 'Images/', fig.dim = c(6, 4))
+knitr::opts_chunk$set(echo = TRUE, 
+                      message = FALSE, 
+                      warning = FALSE, 
+                      fig.path = 'Images/',
+                      fig.align = 'center', 
+                      fig.retina = 2,
+                      fig.dim = c(7, 5), 
+                      dev = "png",
+                      dpi = if (knitr::is_latex_output()) 72 else 300,
+                      out.width = "100%",
+                      kable.table.width = 1.0
+                      )
 ```
+
+\newpage
 
 # Sumário
 
-[**Introdução**](#introdução)
+1. [**Introdução**](#introdução)
 
-[**Dos Dados**]
+2. [**Preparando o Ambiente**](#preparandooambiente)
+      + [**Pacotes**](#pacotes)
+      + [**Funções Criadas**](#funcoes)
 
-[**Contexto**](#contexto)
+3. [**Dos Dados**](#dosdados)
+      + [**Contexto**](#contexto)
+      + [**Fonte dos dados**](#fontededados)
 
-# Introdução {#introdução}
+4. [**Realizando o carregamento dos dados**](#carregandoosdados)
+
+5. [**Visão Inicial dos Dados**](#visaodosdados)
+
+6. [**Analisando os tipos de cada variável nas bases**](#analisandobases)
+      + [**Base de Dados Combustíveis - Visão da pesquisa nacional**](#basecobustiveis)
+      + [**Base de Dados Câmbio**](#basecambio)
+      + [**Base de Dados Brent**](#basebrent)
+      + [**Base de Dados PPI**](#baseppi)
+
+7. [**Tratamento das Datas**](#tratandodatas)
+
+8. [**Análise de frequências de variáveis qualitativas**](#analisefreqvarquali)
+
+9. [**Gerando dados calculados**](#calculodedados)
+
+10. [**Merge das bases de dados**](#merge)
+
+11. [**Calculando as estatísticas descritiva dos dados**](#estatisticadescritiva)
+
+12. [**Análise descritiva e de histogramas das variáveis contínuas**](#analisedescritivaehistograma)
+      + [**Análise descritiva das variáveis contínuas**](#analisedescritivavarcontinua)
+      + [**Histogramas das variáveis contínuas**](#histogramadasvarcontinuas)
+
+13. [**Calculando a dispersão e as correlações**](#calcDispCorre)
+
+14. [**Analisando a normalidade dos dados**](#analisandonormaldados)
+
+15. [**Manipulando base de dados com dados faltantes e outliers**](#manipulandomissingeout)
+	   + [**Índice de completude**](#indicedecompletude)
+      + [**Base de Dados Combustíveis - Visão de missing nacional**](#basecobustiveismissingnacional)
+      + [**Base de Dados Combustíveis - Visão de missing estado RJ**](#basecobustiveismissingrj)
+      + [**Realizando teste de Little para checar se os dados faltantes são completamente aleatórios**](#testelittle)
+      + [**Realizando a imputação de dados**](#imputandodados)
+
+\newpage
+
+# Introdução{#introdução}
 
 Para uma melhor organização deste projeto, foram criadas pastas com propósitos específicos para armazenamento dos arquivos.
 
@@ -33,52 +92,15 @@ A estrutura é dividida da seguinte forma:
         -   PPI
     -   Image - Pasta com os arquivo de extensão PNG.
 
-## Dos Dados
+# Preparando o Ambiente{#preparandooambiente}
 
-### Contexto {#contexto}
-
-O valor de venda dos derivados de petróleo aos consumidores brasileiros é sempre um assunto polêmico. Há muitas variáveis que influenciam na flutuação do valor de venda. Para o consumidor final o que importa é o quanto estas flutuações impactam no orçamento mensal da família.
-
-Os meios de comunicação frequentemente noticiam o aumento ou a redução dos derivados do petróleo diante da flutuação de algumas variáveis, como por exemplo o brent e o câmbio.
-
-A flutuação destas variáveis e de outras são oriundas de acontecimentos mundiais. Os grandes canais de comunicação noticiam periodicamente estes eventos.
-
--   O ["Petróleo sobe mais de 3% em meio a tensões no Oriente Médio"](https://www.cnnbrasil.com.br/economia/mercado/petroleo-sobe-mais-de-3-em-meio-a-tensoes-no-oriente-medio/) (CNN-Brasil, 2024).
--   A ["Guerra e petróleo: veja reações mais drásticas da commodity a grandes conflitos"](https://www.cnnbrasil.com.br/economia/guerra-e-petroleo-veja-reacoes-mais-drasticas-da-commodity-a-grandes-conflitos/) (CNN-Brasil, 2023).
--   A ["Gerra no Oriente Médio pode aumentar preço do diesel, diz Petrobras"](https://agenciabrasil.ebc.com.br/economia/noticia/2023-10/guerra-no-oriente-medio-pode-aumentar-preco-do-diesel-diz-petrobras) (AgênciaBrasil-EBC, 2023).
-
-Além das variáveis, uma sigla que foi introduzida na vida dos brasileiros diante a mudança da política de preço praticada pela petrolífera brasileira (Petrobras). Esta sigla é conhecida como o Preço de Paridade de Importação - PPI.
-
-Um breve histórico da adoção do PPI pela Petrobras e seus desdobramentos políticos pode ser lido na matéria ["Gasolina cara, lucro recorde: como foi o PPI, antiga política da Petrobras"](https://economia.uol.com.br/noticias/redacao/2023/05/16/como-funcionava-o-ppi-antiga-politica-de-precos-da-petrobras.htm) (Economia UOL, 2023)
-
-O fim da adoção do PPI pela Petrobras em 16 de maio de 2023 repercutiu nacionalmente.
-
--   A ["Petrobras anuncia fim da paridade internacional de preços do petróleo"](https://www.cnnbrasil.com.br/economia/petrobras-anuncia-fim-da-paridade-internacional-de-precos-do-petroleo/#:~:text=Petrobras%20anuncia%20fim%20da%20paridade%20internacional%20de%20pre%C3%A7os%20do%20petr%C3%B3leo,-Paridade%20de%20importa%C3%A7%C3%A3o&text=A%20Petrobras%20anunciou%20nesta%20ter%C3%A7a,economia%20da%20CNN%2C%20Raquel%20Landim.) (CNN Brasil, 2023). ["Para Ineep, fim do PPI na Petrobras trouxe maior estabilidade de preço dos combustíveis"](https://www.infomoney.com.br/mercados/para-ineep-fim-do-ppi-na-petrobras-trouxe-maior-estabilidade-de-preco-dos-combustiveis/) (InfoMoney, 2024).
--   A ["Gasolina da Petrobras está 17% mais barata que preço internacional"](https://www.metropoles.com/negocios/gasolina-da-petrobras-esta-17-mais-barata-que-preco-internacional) (Metrópoles, 2024).
-
-Em resumo, o objetivo desta análise é compreender quais, como e o quanto as variáveis influenciam na vida dos consumidores e na política de preço dos derivados de petróleo, em específico a Gasolina no Estado do Rio de Janeiro no período de Janeiro de 2020 até Fevereiro de 2024.
-
-### Fonte dos dados
-
-Um fator crucial para qualquer análise é a busca de fontes de dados abertos confiáveis. Portanto, buscou-se através de sites oficiais de governo e instituições renomadas os dados necessários para a respectiva análise.
-
-O primeiro dado a ser obtido foi a ["Série Histórica de Preços de Combustíveis e de GLP"](https://www.gov.br/anp/pt-br/centrais-de-conteudo/dados-abertos/serie-historica-de-precos-de-combustiveis) (Dados Abertos-ANP, 2024). Esta fonte de dados possui os dados das pesquisas realizadas até a penúltima semana de março de 2024. Os dados utilizandos para esta análise foram os dados oriundos das pesquisas realizadas até fevereiro de 2024, pois, no momento da coleta dos dados, as pesquisas realizadas no mês de março de 2024 ainda não foram finalizadas.
-
-Ainda no site da ANP, foi utilizado os ["Preços de paridade de importação"](https://www.gov.br/anp/pt-br/assuntos/precos-e-defesa-da-concorrencia/precos/precos-de-paridade-de-importacao) (PPI-ANP, 2024).
-
-O Brent foi obtido através da *U.S. Energy information Administration - EIA*. Os dados obtidos fazem parte da visão histórica dos dados em [*PETROLEUM & OTHER LIQUIDS*](https://www.eia.gov/dnav/pet/hist/rbrteM.htm) (EIA, 2024).
-
-A série histórica da taxa cambial foi obtida através do site do Banco Central do Brasil, em sua área ["Cotações e boletins"](https://www.bcb.gov.br/estabilidadefinanceira/historicocotacoes) (BCB, 2024).
-
-# Preparando o Ambiente
-
-## Pacotes
+## Pacotes{#pacotes}
 
 Durante a análise foi verificado a necessidade de utilização de alguns pacotes. A lista de pacotes utilizados encontra-se abaixo:
 
 ```{r Lista de pacotes, echo=TRUE}
 # Lista com todos os pacotes
-package <- c("tidyverse", "ggplot2", "summarytools", "data.table", "knitr", "dlookr")
+package <- c("tidyverse", "ggplot2", "summarytools", "data.table", "knitr", "dlookr", "ggpubr", "naniar", "corrplot", "mice")
 ```
 
 Com a lista de pacotes mapeados, a próxima etapa tem como foco verificar se todos os pacotes necessários para a análise se encontram instalados. Caso não estejam instalados, o processo de instalação será automático.
@@ -108,7 +130,7 @@ Pacotes carregados. Agora vamos remover as variáveis desnecessárias para as pr
 rm(list=ls())
 ```
 
-## Funções Criadas
+## Funções Criadas{#funcoes}
 
 Durante a elaboração da análise foi identificado a necessidade de realizar o tratamento das datas, uniformizando-as a partir das diferentes fontes de dados. Foram criadas funções para este tratamento.
 
@@ -160,7 +182,7 @@ Dando continuidade a necessidade de funções específicas, alguns dados foram d
 
 ```{r Extrator de dados para vários arquivos, echo=TRUE}
 extractor_csv2 = function(dados){
-  readr::read_csv2(dados, locale = locale(encoding = 'latin1'), show_col_types = FALSE)
+  readr::read_csv2(dados, locale = locale(encoding = 'UTF-8'), show_col_types = FALSE)
 }
 
 extractor_csv = function(dados){
@@ -186,7 +208,48 @@ sr <- function(x) {
 
 ```
 
-# Realizando o carregamento dos dados
+***
+
+# Dos Dados{#dosdados}
+
+## Contexto{#contexto}
+
+O valor de venda dos derivados de petróleo aos consumidores brasileiros é sempre um assunto polêmico. Há muitas variáveis que influenciam na flutuação do valor de venda. Para o consumidor final o que importa é o quanto estas flutuações impactam no orçamento mensal da família.
+
+Os meios de comunicação frequentemente noticiam o aumento ou a redução dos derivados do petróleo diante da flutuação de algumas variáveis, como por exemplo o brent e o câmbio.
+
+A flutuação destas variáveis e de outras são oriundas de acontecimentos mundiais. Os grandes canais de comunicação noticiam periodicamente estes eventos.
+
+-   O ["Petróleo sobe mais de 3% em meio a tensões no Oriente Médio"](https://www.cnnbrasil.com.br/economia/mercado/petroleo-sobe-mais-de-3-em-meio-a-tensoes-no-oriente-medio/) (CNN-Brasil, 2024).
+-   A ["Guerra e petróleo: veja reações mais drásticas da commodity a grandes conflitos"](https://www.cnnbrasil.com.br/economia/guerra-e-petroleo-veja-reacoes-mais-drasticas-da-commodity-a-grandes-conflitos/) (CNN-Brasil, 2023).
+-   A ["Gerra no Oriente Médio pode aumentar preço do diesel, diz Petrobras"](https://agenciabrasil.ebc.com.br/economia/noticia/2023-10/guerra-no-oriente-medio-pode-aumentar-preco-do-diesel-diz-petrobras) (AgênciaBrasil-EBC, 2023).
+
+Além das variáveis, uma sigla que foi introduzida na vida dos brasileiros diante a mudança da política de preço praticada pela petrolífera brasileira (Petrobras). Esta sigla é conhecida como o Preço de Paridade de Importação - PPI.
+
+Um breve histórico da adoção do PPI pela Petrobras e seus desdobramentos políticos pode ser lido na matéria ["Gasolina cara, lucro recorde: como foi o PPI, antiga política da Petrobras"](https://economia.uol.com.br/noticias/redacao/2023/05/16/como-funcionava-o-ppi-antiga-politica-de-precos-da-petrobras.htm) (Economia UOL, 2023)
+
+O fim da adoção do PPI pela Petrobras em 16 de maio de 2023 repercutiu nacionalmente.
+
+-   A ["Petrobras anuncia fim da paridade internacional de preços do petróleo"](https://www.cnnbrasil.com.br/economia/petrobras-anuncia-fim-da-paridade-internacional-de-precos-do-petroleo/#:~:text=Petrobras%20anuncia%20fim%20da%20paridade%20internacional%20de%20pre%C3%A7os%20do%20petr%C3%B3leo,-Paridade%20de%20importa%C3%A7%C3%A3o&text=A%20Petrobras%20anunciou%20nesta%20ter%C3%A7a,economia%20da%20CNN%2C%20Raquel%20Landim.) (CNN Brasil, 2023). ["Para Ineep, fim do PPI na Petrobras trouxe maior estabilidade de preço dos combustíveis"](https://www.infomoney.com.br/mercados/para-ineep-fim-do-ppi-na-petrobras-trouxe-maior-estabilidade-de-preco-dos-combustiveis/) (InfoMoney, 2024).
+-   A ["Gasolina da Petrobras está 17% mais barata que preço internacional"](https://www.metropoles.com/negocios/gasolina-da-petrobras-esta-17-mais-barata-que-preco-internacional) (Metrópoles, 2024).
+
+Em resumo, o objetivo desta análise é compreender quais, como e o quanto as variáveis influenciam na vida dos consumidores e na política de preço dos derivados de petróleo, em específico a Gasolina no Estado do Rio de Janeiro no período de Janeiro de 2020 até Fevereiro de 2024.
+
+## Fonte dos dados{#fontededados}
+
+Um fator crucial para qualquer análise é a busca de fontes de dados abertos confiáveis. Portanto, buscou-se através de sites oficiais de governo e instituições renomadas os dados necessários para a respectiva análise.
+
+O primeiro dado a ser obtido foi a ["Série Histórica de Preços de Combustíveis e de GLP"](https://www.gov.br/anp/pt-br/centrais-de-conteudo/dados-abertos/serie-historica-de-precos-de-combustiveis) (Dados Abertos-ANP, 2024). Esta fonte de dados possui os dados das pesquisas realizadas até a penúltima semana de março de 2024. Os dados utilizandos para esta análise foram os dados oriundos das pesquisas realizadas até fevereiro de 2024, pois, no momento da coleta dos dados, as pesquisas realizadas no mês de março de 2024 ainda não foram finalizadas.
+
+Ainda no site da ANP, foi utilizado os ["Preços de paridade de importação"](https://www.gov.br/anp/pt-br/assuntos/precos-e-defesa-da-concorrencia/precos/precos-de-paridade-de-importacao) (PPI-ANP, 2024).
+
+O Brent foi obtido através da *U.S. Energy information Administration - EIA*. Os dados obtidos fazem parte da visão histórica dos dados em [*PETROLEUM & OTHER LIQUIDS*](https://www.eia.gov/dnav/pet/hist/rbrteM.htm) (EIA, 2024).
+
+A série histórica da taxa cambial foi obtida através do site do Banco Central do Brasil, em sua área ["Cotações e boletins"](https://www.bcb.gov.br/estabilidadefinanceira/historicocotacoes) (BCB, 2024).
+
+***
+
+# Realizando o carregamento dos dados{#carregandoosdados}
 
 Neste momento será realizado o carregamento dos dados obtidos através das fontes de dados supracitadas. Os dados foram armazenados nas subpastas da pasta Dataset.
 
@@ -214,7 +277,8 @@ rm("arquivos")
 A segunda estratégia, foi mais simples, pois se refere a extração de um único arquivo com todos os dados históricos do Brent.
 
 ```{r Carga de dados do brent, echo = TRUE}
-brent <- read.table("Dataset/Brent/Europe_Brent_Spot_Price_FOB.csv", sep=",",header = TRUE)
+brent <- read.table("Dataset/Brent/Europe_Brent_Spot_Price_FOB.csv", sep=",", 
+                    header = TRUE)
 colnames(brent) <- c("Data", "Brent USD/Barril")
 ```
 
@@ -223,11 +287,13 @@ A segunda estratégia também foi adotada para a extração de um único arquivo
 **Atenção:** Os dados do PPI foram disponibilizados em vários sheets em uma única planilha do Excel, com extensão XLSX. Foi necessário tratar os dados diretamente no Excel, possibilitando assim um carregamento mais célere.
 
 ```{r Carga de dados do PPI, echo = TRUE}
-ppi <- read.table("Dataset/PPI/ppi.csv", sep=";",header = TRUE)
-ppi <- ppi %>% dplyr::filter(Produto == "Gasolina") %>% dplyr::select(Data, Duque.de.Caxias) %>% dplyr::rename("PPI-DC-R$/L" = "Duque.de.Caxias")
+ppi <- read.table("Dataset/PPI/ppi.csv", sep=";", dec = ",", 
+                  header = TRUE)
 ```
 
-# Visão Inicial dos Dados
+***
+
+# Visão Inicial dos Dados{#visaodosdados}
 
 Após a importação das bases de dados, vamos apresentar as primeiras observações para conhecimento das variáveis.
 
@@ -240,11 +306,14 @@ head(brent)
 
 head(ppi)
 ```
-# Identificando os tipos de cada variável nas bases
+
+***
+
+# Analisando os tipos de cada variável nas bases{#analisandobases}
 
 Após a carga dos dados, foi necessário identificar o tipo de cada variável nas bases. Utilizar-se-á a função diagnose do pacote dlookr que reportará o tipo em todas as bases.
 
-## Base de Dados Combustíveis
+## Base de Dados Combustíveis - Visão da pesquisa nacional{#basecobustiveis}
 
 ```{r Visão geral da pesquisa em âmbito nacional, echo = TRUE}
 combustivel_agg %>% dlookr::diagnose()
@@ -253,7 +322,11 @@ combustivel_agg %>% dplyr::select(Produto) %>% base::unique()
 #str(combustivel_agg)
 ```
 
-As variáveis deste contjunto de dados pode ser classificadas como:
+As variáveis deste contjunto de dados pode ser classificadas conforme a tabela abaixo.
+
+\begin{center}
+Table 1: Classificação variáveis base combustíveis.
+\end{center
 
 | Variável          | Classificação         |
 |-------------------|-----------------------|
@@ -273,7 +346,6 @@ As variáveis deste contjunto de dados pode ser classificadas como:
 | Valor de Compra   | Quantitativa contínua |
 | Unidade de Medida | Qualitativa nominal   |
 | Bandeira          | Qualitativa nominal   |
-
 
 É possível identificar a existência na base de 16 variáveis. Um total de 14 variáveis são qualitativas, sendo estas nominais. Sobre as variáveis quantitativas, temos Valor de Venda e Valor de Compra, ambas variáveis contínuas.
 
@@ -315,91 +387,813 @@ No Brasil, a pesquisa foi realizada:
     -   Unidade de Medida
     -   Bandeira
 
-------------------------------------------------------------------------
-
 Para a respectiva análise um conjunto de variáveis foram selecionadas.
 
 ```{r Variáveis selecionadas para a análise, echo=TRUE}
-combustiveis <- combustivel_agg[,c(1,2,3,5,11,12,13,14,16)]
+combustiveis <- combustivel_agg[,c(1,2,3,5,11,12,16,13,14)]
 ```
 
 Foram inseridos novos nomes para as variáveis.
 
 ```{r Renomeando as variáveis selecionadas para a análise, echo=TRUE}
-colnames(combustiveis) <- c("Regiao", "UF", "Municipio", "CNPJ_Revenda", "Produto", "Data", "Valor_de_Venda", "Valor_de_Compra", "Bandeira")
+colnames(combustiveis) <- c("Regiao", 
+                            "UF", 
+                            "Municipio", 
+                            "CNPJ_Revenda", 
+                            "Produto", 
+                            "Data", 
+                            "Bandeira", 
+                            "Valor_de_Venda", 
+                            "Valor_de_Compra"
+                            )
 ```
 
-------------------------------------------------------------------------
+## Base de Dados Câmbio{#basecambio}
+
+Dando continuidade, será realizada a análise da próxima base de dados, taxa de câmbio.
+
+```{r Conhecendo as variáveis da base de dados Câmbio, echo = TRUE}
+str(cambio_agg)
+cambio_agg %>% dlookr::diagnose()
+```
+
+Ao inspecionar a base de dados, é possível identificar na base a existência de 8 variáveis. Neste primeiro momento não foi possível identificar claramente o propósito das variáveis. Para isso, foi utilizado a função head para leitura dos primeiros dados da base.
+
+É possível observar que a variável V1 é do tipo integer, contudo, ela expressa a data de cotação do câmbio, portanto, é uma variável qualitativa nominal. As variáveis V5 e V6 expressão, respectivamente, cotação de compra e venda na moeda real. Portanto, são quantitativas e ambas são contínuas. A variável V2, V3 e V4, através da informação contida na descrição da base, são: V2 - Código da Moeda, V3 - Tipo da Moeda e V4 - Símbolo da Moeda. Ambas são qualitativas nominais. As variáveis V7 e V8 não possuem descrição na base.
+
+Para o objetivo da análise, foram selecionadas as variáveis V1 e V5
+
+Estes dados foram inseridos em uma nova variável de ambiente, de nome cambio, permitindo que o carregamento original não seja descartado, possibilitando análises futuras.
+
+```{r Selecionando as variáveis do Cambio a serem utilizadas na análise, echo = TRUE}
+cambio <- cambio_agg[, c(1, 5)]
+colnames(cambio) <- c("Data", "Taxa_Cambio")
+```
+
+## Base de Dados Brent{#basebrent}
+
+A análise de variável desta base de dados foi mais simples. A base é composta por duas variáveis. A data é uma variável qualitativa nominal e a variável Preco USD/Barril é quantitativa contínua.
+
+```{r Conhecendo as variáveis da base de dados Brent, echo = TRUE}
+str(brent)
+brent %>% dlookr::diagnose()
+```
+
+## Base de Dados PPI{#baseppi}
+
+Considerando que esta base de dados passou por um tratamento prévio e externo, as variáveis existentes são os valores do PPI por portos e pontos de entrega. A data é uma variável qualitativa nominal e as variáveis que representam os portos e os pontos de entrega são quantitativas contínuas.
+
+```{r Conhecendo as variáveis da base de dados PPI, echo = TRUE}
+str(ppi)
+ppi %>% dlookr::diagnose()
+```
+Para a respectiva análise utilizar-se-á a variável Duque.de.Caxias, a qual, será renomeada para PPI_DC. 
+
+```{r Selecionando as variáveis do PPI a serem utilizadas na análise, echo = TRUE}
+ppi <- ppi %>% 
+   dplyr::filter(Produto == "Gasolina") %>% 
+   dplyr::select(Data, Duque.de.Caxias) %>% 
+   dplyr::rename("PPI_DC" = "Duque.de.Caxias")
+```
+
+Esta variável contém valores referente ao Ponto de entrega chamado Duque de Caxias. Foi considerado esta variavél pois trata do ponto de entrega mais próximo para o estado do Rio de Janeiro.
+
+***
+
+# Tratamento das Datas{#tratandodatas}
+
+As quatro bases de dados dispostas nesta análise (combustiveis, cambio, brent e ppi) possuem datas com formatos e características diferentes.
+
+A uniformização das datas possibilitará mesclar estes dados em uma única base de dados.
+
+Para esta uniformização, as funções de transformação das datas serão chamadas, passando como parâmetro o campo data das bases de dados.
+
+```{r Padronizando a formatação das datas, echo=TRUE}
+combustiveis$Data <- transform_date_one(combustiveis$Data)
+cambio$Data <- transform_date_two(cambio$Data)
+brent$Data <- transform_date_three(brent$Data)
+ppi$Data <- transform_date_one(ppi$Data)
+```
+
+***
+
+# Análise de frequências de variáveis qualitativas{#analisefreqvarquali}
+
+Na base de dados combustiveis, as variáveis Produto, Região, UF e Município são variáveis qualitativas nominais na base. São variáveis interessantes para extração das frequências.
+
+Para esta primeira análise de frequência, analisaremos a variável produto utilizando a função freq() do pacote summarytools.
+
+```{r Frequência variáveis qualitatividas dos combustíveis por produto, echo=TRUE}
+combustiveis %>% 
+   dplyr::select(Produto) %>% 
+   summarytools::freq(., style = 'rmarkdown', order = "freq", plain.ascii = FALSE)
+```
+Nas colunas Freq, temos a frequência absoluta, mostrando um grau de heterogeneidade. Através da coluna % Valid, que apresenta a frequência relativa por produto, é possível ratificar esta observação. Observa-se um destaque para os Produtos GASOLINA, ETANOL e DIESEL S-10, portanto, sendo os produtos que mais foram coletados durante as pesquisas de preços realizadas.
+
+Para esta segunda análise de frequência, analisaremos a variável Regiao.
+
+```{r Frequência variáveis qualitatividas dos combustíveis por região, echo=TRUE}
+combustiveis %>% 
+   dplyr::select(Regiao) %>% 
+   summarytools::freq(., style = 'rmarkdown', order = "freq", plain.ascii = FALSE)
+```
+A coluna Freqs demonstra uma heterogeneidade. É possível observar através da coluna (% of Valid) a frequência relativa por região. A observação possibilita demonstrar que a região Sudeste contribui com quase metade das fontes de postos de combustíveis pesquisados.
+
+É possível observar que a ordem do resultado da frequência relativa por região é igual a análise de do quantitativo de missing da variável Valor_de_Compra por região.
+
+Para a análise de frequência dos Estados que mais contribuíram para a pesquisa, analisaremos a variável UF utilizando a função freq() do pacote summarytools.
+
+```{r Frequência variáveis qualitatividas dos combustíveis por estado, echo=TRUE}
+combustiveis %>% 
+   dplyr::select(UF) %>% 
+   summarytools::freq(., style = 'rmarkdown', order = "freq", plain.ascii = FALSE)
+```
+O resultado demonstra que o estado de SP (frequência relativa 29.2%), MG (frequência relativa 9.71%) e RJ (frequência relativa 7.65%) se destacam com a quantidade de postos de combustíveis pesquisados.
+
+É possível observar que a ordem do resultado da frequência relativa por estado é muito semelhante a análise de do quantitativo de missing da variável Valor_de_Compra. Os únicos estados que sofreram mudanças de posição, entre eles, são AM e PI.
+
+A próxima análise de frequência visa analisar os municípios do Estado do Rio de Janeiro que mais contribuíram para a pesquisa, analisaremos a variável Municipio utilizando a função freq() do pacote summarytools.
+
+```{r Frequência variáveis qualitatividas dos combustíveis por município do RJ, echo=TRUE}
+combustiveis %>% 
+   dplyr::filter(UF == "RJ") %>%
+   dplyr::select(Municipio) %>% 
+   summarytools::freq(., style = 'rmarkdown', order = "freq", plain.ascii = FALSE)
+```
+
+É possível observar que a ordem do resultado da frequência relativa por município é muito semelhante a análise de do quantitativo de missing da variável Valor_de_Compra dos 6 primeiros, ocorrendo uma mudança de posição entre São Gonçalo e Niterói. A partir dos próximos, o que se destaca é a cidade de Campos dos Goytacazes. Ele surge como o próximo município que mais contribuiu com postos de combustíveis, contudo, na análise de missing ele surge em décimo lugar. Tal análise é ratificada pela porcentagem de missing deste município. Ele foi o município que possui a menor porcentagem de missing dos municípios pesquisados.
+
+A próxima análise possibilita visualizar a contribuição, por produto, de cada município do estado do Rio de Janeiro para a pesquisa.
+
+\newpage
+\blandscape
+```{r Análise da contribuição do municipio do RJ por produto na pesquisa, echo=TRUE, }
+df <- combustiveis %>% dplyr::filter(UF == "RJ")
+
+summarytools::ctable(x = df$Municipio, 
+                     y = df$Produto,
+                     prop = "t",
+                     style = "rmarkdown")
+
+rm("df")
+```
+
+A próxima análise possibilita visualizar a contribuição, por produto, para cada município na pesquisa.
+
+```{r Análise da contribuição do produto por município pesquisado, echo=TRUE}
+df <- combustiveis %>% dplyr::filter(UF == "RJ")
+
+summarytools::ctable(x = df$Municipio, 
+                     y = df$Produto,
+                     prop = "r") 
+
+rm("df")
+```
+\elandscape
+
+\newpage
+
+A análise a seguir visa apresentar um mapa de calor a partir do valor de venda dos produtos por município do RJ.
+
+```{r Heatmat entre município do RJ e produtos, echo = TRUE}
+combustiveis %>% 
+   dplyr::filter(UF == "RJ") %>% 
+   ggplot(aes(x = Municipio, 
+              y = Produto, 
+              fill = Valor_de_Venda)) + 
+   geom_tile() + 
+   labs(x = "Municípios", 
+        y = "Produto", 
+        title = "Vendas de Combustíveis no Estado do Rio de Janeiro", 
+        subtitle = "Por Município e Produto") + 
+   theme(axis.text.x = element_text(angle = 90, 
+                                    hjust = 1,
+                                    vjust = 0.5),
+         plot.title = element_text(hjust = 0.5),
+         plot.subtitle = element_text(hjust = 0.5, 
+                                      size = 10)) + 
+   scale_fill_gradient(low = "white", high = "darkred") 
+```
+***
+
+# Gerando dados calculados{#calculodedados}
+
+Para a realização da próxima etapa da análise, a qual envolve o *merge* entre as bases de dados até aqui apresentada, será necessário realizar filtros e cálculos.
+
+A variável taxa de câmbio da base de dados cambio é composta por valores cotados diariamente.
+
+Para uma uniformização mensal dos dados, foi realizado cálculos estatísticos do câmbio praticado mensalmente a partir do valor diário.
+
+```{r Cálculo estatísico do câmbio mensal, echo=TRUE}
+cambio_calc <- cambio %>% 
+   dplyr::group_by(Data) %>% 
+   dplyr::summarise(Cambio = mean(Taxa_Cambio),.groups = 'drop')
+#   dplyr::summarise(Cambio = mean(Taxa_Cambio), 
+#                    Max_Cambio = max(Taxa_Cambio), 
+#                    Min_Cambio = min(Taxa_Cambio),
+#                    SD_Cambio = sd(Taxa_Cambio),.groups = 'drop')
+```
+
+Foi gerada uma nova base de dados, tendo como descrição o termo calc de calculada. Utilizou-se a função group_by() do pacote dplyr para agrupar os dados pela data e posteriormente a função summarise() do pacote dplyr para os cálculos.
+
+***
+
+A variável PPI_DC da base de dados ppi é fruto da análise semanal. As datas semanais foram tratadas para uniformização mensal dos dados. Foram realizados cálculos estatísticos a partir dos valores semanais para o respectivo cálculo mensal.
+
+```{r Cálculo estatístico do ppi mensal, echo=TRUE}
+ppi_calc <- ppi %>% 
+   dplyr::group_by(Data) %>% 
+   dplyr::summarise(PPI_DC = mean(PPI_DC), .groups = 'drop')
+#   dplyr::summarise(PPI_DC = mean(PPI_DC), 
+#                    Max_PPI_DC = max(PPI_DC), 
+#                    Min_PPI_DC = min(PPI_DC),
+#                    SD_PPI_DC = sd(PPI_DC),.groups = 'drop')
+```
+
+Foi gerada uma nova base de dados, tendo como descrição o termo calc de calculada. Utilizou-se a função group_by() do pacote dplyr para agrupar os dados pela data e posteriormente a função summarise() do pacote dplyr para os cálculos.
+
+***
+
+Foi constatado durante as análises que no mês 09 de 2020 não ocorreu nenhuma pesquisa nos postos de combustíveis do Brasil. Por este motivo, foi necessário remover o respectivo mês das bases cambio_calc, ppi_calc e brent.
+
+```{r Remover mês de setembro de 2020 das bases, echo=TRUE}
+cambio_calc <- cambio_calc %>% dplyr::filter(!Data == "2020-09-01")
+ppi_calc <- ppi_calc %>% dplyr::filter(!Data == "2020-09-01")
+brent <- brent %>% dplyr::filter(!Data == "2020-09-01")
+```
+
+***
+
+# Merge das bases de dados{#merge}
+
+Após a realização do filtro e os devidos cálculos, realizar-se-á nesta etapa o *merge* das bases de dados.
+
+```{r Merge das bases de dados para criação de uma nova base para análise, echo=TRUE}
+combustiveis <- base::merge(combustiveis, 
+                            brent, 
+                            by = "Data", 
+                            all = TRUE)
+combustiveis <- base::merge(combustiveis, 
+                            cambio_calc, 
+                            by = "Data", 
+                            all = TRUE)
+combustiveis <- base::merge(combustiveis, 
+                            ppi_calc, 
+                            by = "Data", 
+                            all = TRUE)
+
+combustiveis <- combustiveis %>% 
+   dplyr::mutate(Brent_Real_Barril = `Brent USD/Barril` * Cambio)
+
+combustiveis <- combustiveis %>% 
+   dplyr::select(-`Brent USD/Barril`)
+```
+
+# Calculando as estatísticas descritiva dos dados{#estatisticadescritiva}
+
+Uma outra forma de visualização das estatísticas descritivas dos dados é apresentada abaixo considerando o ano da análise como filtro. As seguintes funções e pacotes foram utilizados:
+
+* Função mutate() do pacote dplyr para setar uma variável ano;
+
+* Função filter() do pacote dplyr para filtrar pela variável ano;
+
+* Função group_by() do pacote dplyr para agrupar por ano;
+
+* Função descr() do pacote summarytools para cálculo da estatística descritiva.
+
+Abaixo é apresentado as possibilidades de análise da estatística descritiva do cambio.
+
+```{r, Estatística descritiva do cambio, echo=TRUE}
+ano_filtro = "2020"
+mes_filtro = "01"
+
+# Estatística descritiva anual do cambio
+cambio %>% 
+   dplyr::mutate(ano = format(Data, "%Y")) %>% 
+   dplyr::filter(ano == ano_filtro) %>% 
+   dplyr::group_by(ano) %>% 
+   summarytools::descr(., style = 'rmarkdown')
+
+# Estatística descritiva mensal do cambio
+cambio %>% 
+   dplyr::mutate(mes = format(Data, "%m"), ano = format(Data, "%Y")) %>% 
+   dplyr::filter(ano == ano_filtro, mes == mes_filtro) %>% 
+   group_by(ano, mes) %>% 
+   summarytools::descr(., style = 'rmarkdown')
+```
+
+Abaixo é apresentado as possibilidades de análise da estatística descritiva dos combustíveis.
+
+```{r, Estatística descritiva dos combustíveis, echo=TRUE}
+ano_filtro = "2020"
+mes_filtro = "01"
+
+# Estatística descritiva anual da gasolina no Brasil
+combustiveis %>% 
+   dplyr::filter(Produto == "GASOLINA") %>% 
+   dplyr::select(Valor_de_Venda, Valor_de_Compra, Data) %>% 
+   dplyr::mutate(ano = format(Data, "%Y")) %>% 
+   dplyr::filter(ano == ano_filtro) %>% 
+   group_by(ano) %>% 
+   summarytools::descr(., style = 'rmarkdown')
+
+# Estatística descritiva anual da gasolina no RJ
+combustiveis %>% 
+   dplyr::filter(Produto == "GASOLINA", UF == "RJ") %>% 
+   dplyr::select(Valor_de_Venda, Valor_de_Compra, Data) %>%    
+   dplyr::mutate(ano = format(Data, "%Y")) %>% 
+   dplyr::filter(ano == ano_filtro) %>% 
+   group_by(ano) %>% 
+   summarytools::descr(., style = 'rmarkdown')
+
+# Estatística descritiva mensal da gasolina no Brasil
+combustiveis %>% 
+   dplyr::filter(Produto == "GASOLINA") %>% 
+   dplyr::select(Valor_de_Venda, Valor_de_Compra, Data) %>%    
+   dplyr::mutate(mes = format(Data, "%m"), ano = format(Data, "%Y")) %>% 
+   dplyr::filter(ano == ano_filtro, mes == mes_filtro) %>% 
+   group_by(ano, mes) %>% summarytools::descr(., style = 'rmarkdown')
+
+# Estatística descritiva mensal da gasolina no RJ
+combustiveis %>% 
+   dplyr::filter(Produto == "GASOLINA", UF == "RJ") %>% 
+   dplyr::select(Valor_de_Venda, Valor_de_Compra, Data) %>%    
+   dplyr::mutate(mes = format(Data, "%m"), ano = format(Data, "%Y")) %>% 
+   dplyr::filter(ano == ano_filtro, mes == mes_filtro) %>% 
+   group_by(ano, mes) %>% 
+   summarytools::descr(., style = 'rmarkdown')
+
+rm(ano_filtro)
+rm(mes_filtro)
+```
+
+***
+
+# Análise descritiva e de histogramas das variáveis contínuas{#analisedescritivaehistograma}
+
+A partir desta etapa, a análise será realizada sobre a base de dados criada com intuito de compreender a relação do preço da gasolina no municípios dos Rio de Janeiro pesquisados. Portanto, a base a ser analisada será a gasolina_rj.
+
+## Análise descritiva das variáveis contínuas{#analisedescritivavarcontinua}
+
+Para a variável Valor_de_Venda, podemos analisar a centralidade dos dados, dipersão, assimetria, bem como suas estatísticas de ordem, a fim de checar se há presença de outliers.
+
+Para realizar essa análise, utilizar-se-á a função descr do pacote summarytools, e posteriormente realizar a leitura desses dados.
+
+```{r Analise descritiva da variável Valor de Venda, echo=TRUE}
+combustiveis %>% 
+   dplyr::filter(Produto == "GASOLINA", UF == "RJ") %>%
+   dplyr::select(Valor_de_Venda) %>% 
+   summarytools::descr()
+```
+
+
+É possível ver pelo critério de skewness, que o valor está entre 0.5 e 1 para assimetria, nos permitindo interpretar que esta distribução possui assimetria moderada, com cauda à direita
+
+Em decorrência desta assimetria, observamos que média e mediana apresentam valores distintos, com a média tendo valor levemente superior, o que aponta que os valores mais distantes do centro da distribuição puxam o valor da média pra cima.
+
+Já a mediana por ser uma estatística de ordem, não é sensível a dados que apresentam alto valor na distribuição, o que é reforçado por seu valor levemente mais baixo que a média.
+
+Se houve-se outliers nesta distribuição a média se descolaria ainda mais da mediana, pois estaria totalmente suscetível à contaminação.
+
+Para a variável Cambio, podemos analisar a centralidade dos dados, dipersão, assimetria, bem como suas estatísticas de ordem, a fim de checar se há presença de outliers.
+
+```{r Analise descritiva da variável Cambio, echo=TRUE}
+combustiveis %>% 
+   dplyr::filter(Produto == "GASOLINA", UF == "RJ") %>%
+   dplyr::select(Cambio) %>% 
+   summarytools::descr()
+```
+
+É possível ver pelo critério de skewness, que o valor está entre -0.5 e -1 para assimetria, nos permitindo interpretar que esta distribução possui assimetria moderada, com cauda à esquerda.
+
+Em decorrência desta assimetria, observamos que média e mediana apresentam valores distintos, com a média tendo valor levemente inferior.
+
+Se houve-se outliers representativos nesta distribuição a média se descolaria ainda mais da mediana, pois estaria totalmente suscetível à contaminação.
+
+Para a variável Brent R$/Barril, podemos analisar a centralidade dos dados, dipersão, assimetria, bem como suas estatísticas de ordem, a fim de checar se há presença de outliers.
+
+```{r Analise descritiva da variável Brent, echo=TRUE}
+combustiveis %>% 
+   dplyr::filter(Produto == "GASOLINA", UF == "RJ") %>%   
+   dplyr::select(Brent_Real_Barril) %>% 
+   summarytools::descr()
+```
+
+É possível ver pelo critério de skewness, que o valor está entre -0.5 e 0.5 para assimetria, nos permite interpretar que esta distribução possui assimetria fraca, com cauda leve a esquerda.
+
+Em decorrência desta assimetria, observamos que média e mediana apresentam valores distintos, com a média tendo valor levemente inferior.
+
+Se houve-se outliers representativos nesta distribuição a média se descolaria ainda mais da mediana, pois estaria totalmente suscetível à contaminação.
+
+Para a variável PPI_DC, podemos analisar a centralidade dos dados, dipersão, assimetria, bem como suas estatísticas de ordem, a fim de checar se há presença de outliers.
+
+```{r Analise descritiva da variável PPI, echo=TRUE}
+combustiveis %>% 
+   dplyr::filter(Produto == "GASOLINA", UF == "RJ") %>%
+   dplyr::select(PPI_DC) %>% 
+   summarytools::descr()
+```
+É possível ver pelo critério de skewness, que o valor está entre -0.5 e 0.5 para assimetria, nos permite interpretar que esta distribução possui assimetria fraca, com cauda leve a esquerda.
+
+Em decorrência desta assimetria, observamos que média e mediana apresentam valores distintos, com a média tendo valor levemente inferior.
+
+Se houve-se outliers representativos nesta distribuição a média se descolaria ainda mais da mediana, pois estaria totalmente suscetível à contaminação.
+
+
+## Histogramas das variáveis contínuas{#histogramadasvarcontinuas}
+
+Um conceito para esta etapa da análise é fundamental compreendermos. 
+
+**O que é uma distribuição normal?** 
+
+Podemos conceituar como sendo uma distribuição estatística no formato de um sino e simétrica em relação a média.
+
+**O que simboliza o formato de um sino?**
+
+A maioria dos dados estão concentrados no centro, diminuindo a quantidade destes dados em ambas as direções.
+
+**O que é a simetria em relação a média?**
+
+O termo simetria em relação a média é nada mais do que os valores da mediana e moda concidirem com o valor da média. 
+
+Portanto, pode-se dizer que para que haja simetria e o formato de sino é necessário que a média, mediana e moda possuam o mesmo valor e o quantitativo de valores do lado esquerdo e direito da média são iguais.
+
+A partir do histograma apresentado abaixo é possível compreender o valor de venda da gasolina praticado durante o período de 2020 e 02/2024 nos municípios do Estado do RJ.
+
+A escolha do número de bins para o histograma foi uma escolha arbitrária, assumindo a ocultação da realidade dos dados.
+
+A primeira variável a ser gerado do histograma é o Valor de Venda da Gasolina nos municípios do Rio de Janeiro.
+
+```{r Histograma do valor do litro da gasolina vendida nos postos pesquisados,echo=TRUE}
+combustiveis %>%
+   dplyr::filter(Produto == "GASOLINA", UF == "RJ") %>% 
+   dplyr::select(Valor_de_Venda) %>% 
+   ggplot(aes(x=Valor_de_Venda)) + 
+   geom_histogram(aes(y = after_stat(density)) , bins=50, fill = 'lightblue') + 
+   xlab('Valor de Venda') + 
+   ylab('Densidade de Frequência') + 
+   labs(title = "Distribuição do Valor de Venda da Gasolina no RJ aproximada por Histograma", 
+        subtitle = "Binarização arbitrária") + 
+   geom_vline(xintercept=c(median(combustiveis$Valor_de_Venda), 
+                           mean(combustiveis$Valor_de_Venda))) + 
+   annotate("text", x=median(combustiveis$Valor_de_Venda) + 
+               -0.15, y=0.7, label="Mediana", angle=90) + 
+   annotate("text", x=mean(combustiveis$Valor_de_Venda) + 
+               0.15, y=0.7, label="Média", angle=90) + 
+   geom_density(linetype = 2) + 
+   theme_classic()
+```
+
+É possível observar nesta visualização que leva a conclusões semelhantes a análise das estatísticas descritas.
+
+1. Assimetria moderada, com cauda à direita.
+2. Em decorrência desta assimetria, observamos que média e mediana apresentam valores distintos, com a média tendo valor superior, o que aponta que os valores mais distantes do centro da distribuição puxam o valor da média pra cima.
+
+Em relação a binarização, é possível considerar outras regras de binarização levando em consideração regras disponíveis na literatura, como a regra de Freedman-Diaconis, bem como a regra de Sturge, como segue:
+
+```{r Histograma FD do valor do litro da gasolina vendida nos postos pesquisados, echo=TRUE}
+combustiveis %>% 
+   dplyr::filter(Produto == "GASOLINA", UF == "RJ") %>% 
+   dplyr::select(Valor_de_Venda) %>% 
+   ggplot(aes(x=Valor_de_Venda)) + 
+   geom_histogram(aes(y = after_stat(density)), 
+                  binwidth=fd, 
+                  fill = 'lightblue') + 
+   xlab('Valor de Venda') + 
+   ylab('Densidade de Frequência') + 
+   labs(title = "Distribuição do Valor de Venda da Gasolina no RJ aproximada por Histograma", 
+        subtitle = "Binarização pela Regra de FD") + 
+   geom_vline(xintercept=c(median(combustiveis$Valor_de_Venda), 
+                           mean(combustiveis$Valor_de_Venda))) + 
+   annotate("text", x=median(combustiveis$Valor_de_Venda) + 
+               -0.15, y=0.1, label="Mediana", angle=90) + 
+   annotate("text", x=mean(combustiveis$Valor_de_Venda) + 
+               0.15, y=0.1, label="Média", angle=90) + 
+   geom_density(linetype = 2) + 
+   theme_classic()
+```
+
+
+```{r Histograma SR do valor do litro da gasolina vendida nos postos pesquisados, echo=TRUE}
+combustiveis %>% 
+   dplyr::filter(Produto == "GASOLINA", UF == "RJ") %>% 
+   dplyr::select(Valor_de_Venda) %>% 
+   ggplot(aes(x=Valor_de_Venda)) + 
+   geom_histogram(aes(y = after_stat(density)) , 
+                  binwidth=sr, 
+                  fill = 'lightblue') + 
+   xlab('Valor por Litro') + 
+   ylab('Densidade de Frequência') + 
+   labs(title = "Distribuição do Valor de Venda da Gasolina no RJ aproximada por Histograma", 
+        subtitle = "Binarização pela Regra de SR") + 
+   geom_vline(xintercept=c(median(combustiveis$Valor_de_Venda), 
+                           mean(combustiveis$Valor_de_Venda))) + 
+   annotate("text", x=median(combustiveis$Valor_de_Venda) + 
+               -0.15, y=0.1, label="Mediana", angle=90) + 
+   annotate("text", x=mean(combustiveis$Valor_de_Venda) + 
+               0.15, y=0.1, label="Média", angle=90) + 
+   geom_density(linetype = 2) + 
+   theme_classic()
+```
+
+A segunda variável a ser gerado do histograma é o câmbio.
+
+```{r Histograma do cambio através de binerização arbitrária,echo=TRUE}
+combustiveis %>%
+   dplyr::filter(Produto == "GASOLINA", UF == "RJ") %>% 
+   dplyr::select(Cambio) %>% 
+   ggplot(aes(x=Cambio)) + 
+   geom_histogram(aes(y = after_stat(density)) , bins=10, fill = 'lightblue') + 
+   xlab('Câmbio') + 
+   ylab('Densidade de Frequência') + 
+   labs(title = "Distribuição do Câmbio aproximada por Histograma", 
+        subtitle = "Binarização arbitrária") + 
+   geom_vline(xintercept=c(median(combustiveis$Cambio), 
+                           mean(combustiveis$Cambio))) + 
+   annotate("text", x=median(combustiveis$Cambio) + 
+               0.03, y=0.9, label="Mediana", angle=90) + 
+   annotate("text", x=mean(combustiveis$Cambio) + 
+               -0.03, y=0.9, label="Média", angle=90) + 
+   geom_density(linetype = 2) + 
+   theme_classic()
+```
+
+```{r Histograma do cambio através de binerização FD, echo=TRUE}
+combustiveis %>% 
+   dplyr::filter(Produto == "GASOLINA", UF == "RJ") %>% 
+   dplyr::select(Cambio) %>% 
+   ggplot(aes(x=Cambio)) + 
+   geom_histogram(aes(y = after_stat(density)), 
+                  binwidth=fd, 
+                  fill = 'lightblue') + 
+   xlab('Câmbio') + 
+   ylab('Densidade de Frequência') + 
+   labs(title = "Distribuição do Câmbio aproximada por Histograma", 
+        subtitle = "Binarização pela Regra de FD") + 
+   geom_vline(xintercept=c(median(combustiveis$Cambio), 
+                           mean(combustiveis$Cambio))) + 
+   annotate("text", x=median(combustiveis$Cambio) + 
+               0.02, y=4, label="Mediana", angle=90) + 
+   annotate("text", x=mean(combustiveis$Cambio) + 
+               -0.02, y=4, label="Média", angle=90) + 
+   geom_density(linetype = 2) + 
+   theme_classic()
+```
+
+
+```{r Histograma do cambio através de binerização SR, echo=TRUE}
+combustiveis %>% 
+   dplyr::filter(Produto == "GASOLINA", UF == "RJ") %>% 
+   dplyr::select(Cambio) %>% 
+   ggplot(aes(x=Cambio)) + 
+   geom_histogram(aes(y = after_stat(density)), 
+                  binwidth=sr, 
+                  fill = 'lightblue') + 
+   xlab('Câmbio') + 
+   ylab('Densidade de Frequência') + 
+   labs(title = "Distribuição do Câmbio aproximada por Histograma", 
+        subtitle = "Binarização pela Regra de SR") + 
+   geom_vline(xintercept=c(median(combustiveis$Cambio), 
+                           mean(combustiveis$Cambio))) + 
+   annotate("text", x=median(combustiveis$Cambio) + 
+               0.02, y=2.5, label="Mediana", angle=90) + 
+   annotate("text", x=mean(combustiveis$Cambio) + 
+               -0.02, y=2.5, label="Média", angle=90) + 
+   geom_density(linetype = 2) + 
+   theme_classic()
+```
+
+A terceira variável a ser gerado do histograma é o brent.
+
+```{r Histograma do brent através de binerização arbitrária,echo=TRUE}
+combustiveis %>%
+   dplyr::filter(Produto == "GASOLINA", UF == "RJ") %>% 
+   dplyr::select(Brent_Real_Barril) %>% 
+   ggplot(aes(x=Brent_Real_Barril)) + 
+   geom_histogram(aes(y = after_stat(density)) , bins=10, fill = 'lightblue') + 
+   xlab('Brent R$/Barril') + 
+   ylab('Densidade de Frequência') + 
+   labs(title = "Distribuição do Brent em R$ aproximada por Histograma", 
+        subtitle = "Binarização arbitrária") + 
+   geom_vline(xintercept=c(median(combustiveis$Brent_Real_Barril), 
+                           mean(combustiveis$Brent_Real_Barril))) + 
+   annotate("text", x=median(combustiveis$Brent_Real_Barril) + 
+               10, y=0.001, label="Mediana", angle=90) + 
+   annotate("text", x=mean(combustiveis$Brent_Real_Barril) + 
+               -10, y=0.001, label="Média", angle=90) + 
+   geom_density(linetype = 2) + 
+   theme_classic()
+```
+
+```{r Histograma do brent através de binerização FD, echo=TRUE}
+combustiveis %>% 
+   dplyr::filter(Produto == "GASOLINA", UF == "RJ") %>% 
+   dplyr::select(Brent_Real_Barril) %>% 
+   ggplot(aes(x=Brent_Real_Barril)) + 
+   geom_histogram(aes(y = after_stat(density)), 
+                  binwidth=fd, 
+                  fill = 'lightblue') + 
+   xlab('Brent R$/Barril') + 
+   ylab('Densidade de Frequência') + 
+   labs(title = "Distribuição do Brent em R$ aproximada por Histograma", 
+        subtitle = "Binarização pela Regra de FD") + 
+   geom_vline(xintercept=c(median(combustiveis$Brent_Real_Barril), 
+                           mean(combustiveis$Brent_Real_Barril))) + 
+   annotate("text", x=median(combustiveis$Brent_Real_Barril) + 
+               10, y=0.001, label="Mediana", angle=90) + 
+   annotate("text", x=mean(combustiveis$Brent_Real_Barril) + 
+               -10, y=0.001, label="Média", angle=90) + 
+   geom_density(linetype = 2) + 
+   theme_classic()
+```
+
+
+```{r Histograma do brent através de binerização SR, echo=TRUE}
+combustiveis %>% 
+   dplyr::filter(Produto == "GASOLINA", UF == "RJ") %>% 
+   dplyr::select(Brent_Real_Barril) %>% 
+   ggplot(aes(x=Brent_Real_Barril)) + 
+   geom_histogram(aes(y = after_stat(density)), 
+                  binwidth=sr, 
+                  fill = 'lightblue') + 
+   xlab('Brent R$/Barril') + 
+   ylab('Densidade de Frequência') + 
+   labs(title = "Distribuição do Brent em R$ aproximada por Histograma", 
+        subtitle = "Binarização pela Regra de SR") + 
+   geom_vline(xintercept=c(median(combustiveis$Brent_Real_Barril), 
+                           mean(combustiveis$Brent_Real_Barril))) + 
+   annotate("text", x=median(combustiveis$Brent_Real_Barril) + 
+               10, y=0.001, label="Mediana", angle=90) + 
+   annotate("text", x=mean(combustiveis$Brent_Real_Barril) + 
+               -10, y=0.001, label="Média", angle=90) + 
+   geom_density(linetype = 2) + 
+   theme_classic()
+```
+
+A quarta variável a ser gerado do histograma é o PPI.
+
+```{r Histograma do PPI através de binerização arbitrária,echo=TRUE}
+combustiveis %>%
+   dplyr::filter(Produto == "GASOLINA", UF == "RJ") %>% 
+   dplyr::select(PPI_DC) %>% 
+   ggplot(aes(x=PPI_DC)) + 
+   geom_histogram(aes(y = after_stat(density)) , bins=10, fill = 'lightblue') + 
+   xlab('PPI') + 
+   ylab('Densidade de Frequência') + 
+   labs(title = "Distribuição do PPI DC aproximada por Histograma", 
+        subtitle = "Binarização arbitrária") + 
+   geom_vline(xintercept=c(median(combustiveis$PPI_DC), 
+                           mean(combustiveis$PPI_DC))) + 
+   annotate("text", x=median(combustiveis$PPI_DC) + 
+               0.07, y=0.2, label="Mediana", angle=90) + 
+   annotate("text", x=mean(combustiveis$PPI_DC) + 
+               -0.07, y=0.3, label="Média", angle=90) + 
+   geom_density(linetype = 2) + 
+   theme_classic()
+```
+
+```{r Histograma do PPI através de binerização FD, echo=TRUE}
+combustiveis %>% 
+   dplyr::filter(Produto == "GASOLINA", UF == "RJ") %>% 
+   dplyr::select(PPI_DC) %>% 
+   ggplot(aes(x=PPI_DC)) + 
+   geom_histogram(aes(y = after_stat(density)), 
+                  binwidth=fd, 
+                  fill = 'lightblue') + 
+   xlab('PPI') + 
+   ylab('Densidade de Frequência') + 
+   labs(title = "Distribuição do PPI DC aproximada por Histograma", 
+        subtitle = "Binarização pela Regra de FD") + 
+   geom_vline(xintercept=c(median(combustiveis$PPI_DC), 
+                           mean(combustiveis$PPI_DC))) + 
+   annotate("text", x=median(combustiveis$PPI_DC) + 
+               0.1, y=0.1, label="Mediana", angle=90) + 
+   annotate("text", x=mean(combustiveis$PPI_DC) + 
+               -0.1, y=0.1, label="Média", angle=90) + 
+   geom_density(linetype = 2) + 
+   theme_classic()
+```
+
+```{r Histograma do PPI através de binerização SR, echo=TRUE}
+combustiveis %>% 
+   dplyr::filter(Produto == "GASOLINA", UF == "RJ") %>% 
+   dplyr::select(PPI_DC) %>% 
+   ggplot(aes(x=PPI_DC)) + 
+   geom_histogram(aes(y = after_stat(density)), 
+                  binwidth=sr, 
+                  fill = 'lightblue') + 
+   xlab('PPI') + 
+   ylab('Densidade de Frequência') + 
+   labs(title = "Distribuição do PPI DC aproximada por Histograma", 
+        subtitle = "Binarização pela Regra de SR") + 
+   geom_vline(xintercept=c(median(combustiveis$PPI_DC), 
+                           mean(combustiveis$PPI_DC))) + 
+   annotate("text", x=median(combustiveis$PPI_DC) + 
+               0.1, y=0.1, label="Mediana", angle=90) + 
+   annotate("text", x=mean(combustiveis$PPI_DC) + 
+               -0.1, y=0.1, label="Média", angle=90) + 
+   geom_density(linetype = 2) + 
+   theme_classic()
+```
+
+# Calculando a dispersão e as correlações{#calcDispCorre}
+
+Vamos calcular a correlação entre as variáveis, para verificar se há evidência de relação entre elas, e o quão intensa é essa relação.
+
+```{r, echo=TRUE}
+cor(combustiveis %>% 
+       dplyr::filter(Produto == "GASOLINA", UF == "RJ") %>% 
+       dplyr::select(Valor_de_Venda, Cambio, Brent_Real_Barril, PPI_DC))
+```
+
+```{r Calculando corrplot pearson, echo = FALSE}
+combustiveis %>% 
+   dplyr::filter(Produto == "GASOLINA", UF == "RJ") %>% 
+   dplyr::select(Valor_de_Venda, Cambio, Brent_Real_Barril, PPI_DC) %>% 
+   cor(., method = "pearson") %>% 
+   corrplot(., title = 'Pearson')
+```
+
+
+```{r Calculando corrplot spearman, echo = FALSE}
+combustiveis %>% 
+   dplyr::filter(Produto == "GASOLINA", UF == "RJ") %>% 
+   dplyr::select(Valor_de_Venda, Cambio, Brent_Real_Barril, PPI_DC) %>% 
+   cor(., method = "spearman") %>% 
+   corrplot(., title = 'spearman')
+```
+
+É possível observar que o valor de venda da gasolina possui uma correlação expressiva com o valor do Brent e PPI DC. Tal análise permite concluir que o valor da venda da gasolina nos postos de combustíveis variam com alguma frenquência conforme a variação do custo do Brent e do PPI.
+
+O scatter plot pode nos auxiliar na visualização da proporcionalidade de crescimento entre as variáveis mais correlacionadas.
+
+```{r Análise das variáveis mais correlacionadas via scatter plot, echo=TRUE}
+combustiveis %>% 
+   dplyr::filter(Produto == "GASOLINA", UF == "RJ") %>% 
+   dplyr::select(PPI_DC, Brent_Real_Barril, Valor_de_Venda) %>% 
+   ggplot(aes(x = PPI_DC, y = Brent_Real_Barril, color = Valor_de_Venda)) + 
+   geom_point() + 
+   scale_colour_gradient(low = "green", high = "red") + 
+   geom_smooth(method = "lm", se = FALSE) + 
+   theme_classic()
+```
+
+É possível observar uma alta correção entre Valor_de_Venda em relação PPI_DC e Brent R$/Barril. Diante do exposto é possível afirmar que o PPI_DC e o Brent influenciam no valor do preço da Gasolina.
+
+
+##########################################
+# Esta parte falta
+
+# Analisando a normalidade dos dados{#analisandonormaldados}
+
+Considerando os resultados apresentados anteriormente pelos histogramas, o próximo passo visa realizar alguns testes para checar normalidade das variáveis.
+
+```{r Teste de Shapiro-Wilk para checar normalidade, echo = FALSE}
+
+a <- combustiveis %>% 
+   dplyr::filter(Produto == "GASOLINA", UF == "RJ") %>% 
+   dplyr::filter(mes.ano %in% as.IDate("01-01-2020",format = "%d-%m-%Y")) %>% 
+   dplyr::select(Valor_de_Venda) 
+shapiro.test(a)
+
+```
+
+```{r qqplot pre pandemia, echo = FALSE}
+
+#qqnorm(combustiveis$Valor_de_Venda)
+
+qqplot(combustiveis$Valor_de_Venda)(qqnorm(combustiveis$Valor_de_Venda)) 
+
+```
+##########################################
+
+# Manipulando base de dados com dados faltantes e outliers{#manipulandomissingeout}
+
+**O que é completude de dados?**
+
+Completude de dados se refere a ausência de dados em um conjunto de dados. Quando os dados estão completos em um conjunto de dados e sua consistência pode ser validada, dizemos que há qualidade dos dados a serem utilizados em uma análise, possibilitando assim *insights* confiáveis.
+
+
+**Qual o impacto que os dados faltantes podem ter em uma análise?**
+
+A ausência de dados ou lacunas no conjunto de dados em uma análise, além de proporcionar uma baixa qualidade dos dados, poderá impossibilitar a obtenção de *insights* confiáveis e precisos. A inconfiabilidade nos dados podem gerar interpretações equivocadas e propor decisões errôneas.
+
+## Índice de completude{#indicedecompletude}
+
+```{r Descrevendo os dados faltantes pelo indice de completude,echo=TRUE}
+combustiveis %>% naniar::miss_var_summary()
+
+combustiveis %>% gg_miss_var()
+
+```
 
 A única variável de interesse que possui missing é a Valor de Compra, intitulada Valor_de_Compra.
 
+## Base de Dados Combustíveis - Visão de missing nacional{#basecobustiveismissingnacional}
+
 Para uma melhor compreensão dos missing existentes nesta variável, algumas investigações foram feitas.
 
-------------------------------------------------------------------------
-
-A primeira análise visa visualizar o missing da variável por Estado.
-
-```{r Quantidade de missing da variável Valor de Compra por Estado, echo=TRUE}
-df <- combustiveis %>%
-   dplyr::group_by(UF) %>%
-   dplyr::mutate(n_linhas = 1) %>%
-   dplyr::summarise(n_missing = sum(is.na(Valor_de_Compra))) %>%
-   dplyr::arrange(desc(n_missing))
-df
-
-kable(df, format="latex")
-```
-É possível observar que o missing da respectiva variável é expressivo para os postos de combustíveis de SP, MG e RJ. O gráfico abaixo demonstra esta representatividade.
-
-```{r Gráfico da quantidade de missing da variável Valor de Compra por Estado, echo=TRUE}
-ggplot(df, aes(x = reorder(UF, n_missing, decreasing = TRUE), y = n_missing)) + 
-   geom_bar(stat = "identity") + 
-   labs(x = "Estado", y = "Qtd de Missing", subtitle = "Variável Valor de Compra") + 
-   scale_y_continuous(labels = scales::comma_format()) + 
-   ggtitle("Análise de Missing por Estado") +
-   theme(plot.title = element_text(hjust = 0.5),
-         plot.subtitle = element_text(hjust = 0.5, size = 10)) + 
-   scale_fill_brewer(palette = "Set1")
-
-rm("df")
-```
-
-------------------------------------------------------------------------
-
-Foi feita uma outra análise considerando a porcentagem de missing sobre a observação desta variável para cada estado. É possível observar valores próximos.
-
-```{r Porcentagem de missing da variável Valor de Compra por Estado, echo=TRUE}
-df <- combustiveis %>%
-  dplyr::group_by(UF) %>%
-  dplyr::mutate(n_linhas = 1) %>%
-  dplyr::summarise(n_missing = sum(is.na(Valor_de_Compra)),
-            n_linhas = sum(n_linhas), porcentagem_missing = round(n_missing / n_linhas, 2)) %>%
-  dplyr::arrange(desc(porcentagem_missing))
-
-df
-
-kable(df, format="latex")
-```
-
-O gráfico abaixo demonstra visualmente estes valores.
-
-```{r Gráfico da porcentagem de missing da variável Valor de Compra por Estado, echo=TRUE}
-ggplot(df, aes(x = reorder(UF, porcentagem_missing, decreasing = TRUE), y = porcentagem_missing)) + 
-   geom_bar(stat = "identity") + 
-   labs(x = "Estado", y = "Porcentagem de Missing", subtitle = "Variável Valor de Compra") + 
-   scale_y_continuous(labels = scales::percent_format()) + 
-   ggtitle("Porcentagem de Missing por Estado") +
-   theme(plot.title = element_text(hjust = 0.5),
-         plot.subtitle = element_text(hjust = 0.5, size = 10)) + 
-   geom_text(aes(label = porcentagem_missing), angle = 90, vjust = 0.5, hjust = 1.5)
-
-
-rm("df")
-```
-
-------------------------------------------------------------------------
-
-A mesma análise realizada por estado, foi feita por região.
+A primeira análise visa visualizar o missing da variável por Regiao.
 
 ```{r Quantidade de missing da variável Valor de Compra por Região, echo=TRUE}
 df <- combustiveis %>%
@@ -408,18 +1202,106 @@ df <- combustiveis %>%
   dplyr::summarise(n_missing = sum(is.na(Valor_de_Compra))) %>%
   dplyr::arrange(desc(n_missing))
 
-df
-
-kable(df, format="latex")
+#knitr::kable(df, format="latex")
+knitr::kable(df, 
+             format="latex",
+             caption = "Quantidade de missing da variável Valor de Compra por Região.",
+             align = "c",
+             booktabs = TRUE,
+             longtable = TRUE,
+             linesep = ""
+)
 ```
+
 É possível observar que a região sudeste possui maior quantidade de missing. O gráfico abaixo demonstra esta análise visualmente.
 
 ```{r Gráfico da quantidade de missing da variável Valor de Compra por Região, echo=TRUE}
-ggplot(df, aes(x = reorder(Regiao, n_missing, decreasing = TRUE), y = n_missing)) + 
+ggplot(df, aes(x = reorder(Regiao, 
+                           n_missing, decreasing = TRUE), 
+               y = n_missing)) + 
    geom_bar(stat = "identity") + 
-   labs(x = "Região", y = "Qtd de Missing", subtitle = "Variável Valor de Compra") + 
+   labs(x = "Região", 
+        y = "Qtd de Missing", 
+        subtitle = "Variável Valor de Compra") + 
    scale_y_continuous(labels = scales::comma_format()) + 
-   ggtitle("Análise de Missing por Região") +
+   ggtitle("Análise da Quantidade e Missing por Região") +
+   theme(plot.title = element_text(hjust = 0.5),
+         plot.subtitle = element_text(hjust = 0.5, 
+                                      size = 10)) + 
+   scale_fill_brewer(palette = "Set1")
+
+rm("df")
+```
+
+Foi feita uma segunda análise considerando a porcentagem de missing sobre a observação desta variável para cada região. É possível observar uma uniformização nas porcentagens entre as regiões.
+
+```{r Porcentagem de missing da variável Valor de Compra por Região, echo=TRUE}
+df <- combustiveis %>%
+  dplyr::group_by(Regiao) %>%
+  dplyr::mutate(n_linhas = 1) %>%
+  dplyr::summarise(n_missing = sum(is.na(Valor_de_Compra)),
+            n_linhas = sum(n_linhas), 
+            porcentagem_missing = round(n_missing / n_linhas, 2)) %>%
+  dplyr::arrange(desc(porcentagem_missing))
+
+#kable(df, format="latex")
+knitr::kable(df, 
+             format="latex",
+             caption = "Porcentagem de missing da variável Valor de Compra por Região.",
+             align = "c",
+             booktabs = TRUE,
+             longtable = TRUE,
+             linesep = "",)
+```
+
+O gráfico abaixo demonstra visualmente esta análise.
+
+```{r Gráfico da porcentagem de missing da variável Valor de Compra por Região, echo=TRUE}
+ggplot(df, aes(x = reorder(Regiao, porcentagem_missing, decreasing = TRUE), 
+               y = porcentagem_missing)) + 
+   geom_bar(stat = "identity") + 
+   labs(x = "Região", 
+        y = "Análise da Porcentagem de Missing", 
+        subtitle = "Variável Valor de Compra") + 
+   scale_y_continuous(labels = scales::percent_format()) + 
+   ggtitle("Porcentagem de Missing por Região") +
+   theme(plot.title = element_text(hjust = 0.5),
+         plot.subtitle = element_text(hjust = 0.5, 
+                                      size = 10)) + 
+   geom_text(aes(label = porcentagem_missing), 
+             vjust = 1.5)
+
+rm("df")
+```
+
+A mesma análise realizada por estado, foi feita por Estado.
+
+```{r Quantidade de missing da variável Valor de Compra por Estado, echo=TRUE}
+df <- combustiveis %>%
+   dplyr::group_by(UF) %>%
+   dplyr::mutate(n_linhas = 1) %>%
+   dplyr::summarise(n_missing = sum(is.na(Valor_de_Compra))) %>%
+   dplyr::arrange(desc(n_missing))
+
+#kable(df, format="latex")
+
+knitr::kable(df, 
+             format="latex",
+             caption = "Quantidade de missing da variável Valor de Compra por Estado.",
+             align = "c",
+             booktabs = TRUE,
+             longtable = TRUE,
+             linesep = "",)
+```
+
+É possível observar que o missing da respectiva variável é expressivo para os postos de combustíveis de SP, MG e RJ. O gráfico abaixo demonstra esta representatividade.
+
+```{r Gráfico da quantidade de missing da variável Valor de Compra por Estado, echo=TRUE}
+ggplot(df, aes(x = reorder(UF, n_missing, decreasing = TRUE), y = n_missing)) + 
+   geom_bar(stat = "identity") + 
+   labs(x = "Estado", y = "Qtd de Missing", subtitle = "Variável Valor de Compra") + 
+   scale_y_continuous(labels = scales::comma_format()) + 
+   ggtitle("Análise da Quantidade de Missing por Estado") +
    theme(plot.title = element_text(hjust = 0.5),
          plot.subtitle = element_text(hjust = 0.5, size = 10)) + 
    scale_fill_brewer(palette = "Set1")
@@ -427,53 +1309,70 @@ ggplot(df, aes(x = reorder(Regiao, n_missing, decreasing = TRUE), y = n_missing)
 rm("df")
 ```
 
-------------------------------------------------------------------------
+Foi feita uma segunda análise considerando a porcentagem de missing sobre a observação desta variável para cada estado. É possível observar valores próximos.
 
-Foi feita uma outra análise considerando a porcentagem de missing sobre a observação desta variável para cada região. É possível observar valores próximos.
-
-```{r Porcentagem de missing da variável Valor de Compra por Região, echo=TRUE}
+```{r Porcentagem de missing da variável Valor de Compra por Estado, echo=TRUE}
 df <- combustiveis %>%
-  dplyr::group_by(Regiao) %>%
+  dplyr::group_by(UF) %>%
   dplyr::mutate(n_linhas = 1) %>%
   dplyr::summarise(n_missing = sum(is.na(Valor_de_Compra)),
-            n_linhas = sum(n_linhas), porcentagem_missing = round(n_missing / n_linhas, 2)) %>%
+            n_linhas = sum(n_linhas), 
+            porcentagem_missing = round(n_missing / n_linhas, 2)) %>%
   dplyr::arrange(desc(porcentagem_missing))
 
-df
-
-kable(df, format="latex")
+#kable(df, format="latex")
+knitr::kable(df, 
+             format="latex",
+             caption = "Porcentagem de missing da variável Valor de Compra por Estado.",
+             align = "c",
+             booktabs = TRUE,
+             longtable = TRUE,
+             linesep = "",)
 ```
 
-o gráfico abaixo demonstra visualmente esta análise.
+O gráfico abaixo demonstra visualmente estes valores.
 
-```{r Gráfico da porcentagem de missing da variável Valor de Compra por Região, echo=TRUE}
-ggplot(df, aes(x = reorder(Regiao, porcentagem_missing, decreasing = TRUE), y = porcentagem_missing)) + 
+```{r Gráfico da porcentagem de missing da variável Valor de Compra por Estado, echo=TRUE}
+ggplot(df, aes(x = reorder(UF, 
+                           porcentagem_missing, decreasing = TRUE), 
+               y = porcentagem_missing)) + 
    geom_bar(stat = "identity") + 
-   labs(x = "Região", y = "Porcentagem de Missing", subtitle = "Variável Valor de Compra") + 
+   labs(x = "Estado", 
+        y = "Porcentagem de Missing", 
+        subtitle = "Variável Valor de Compra") + 
    scale_y_continuous(labels = scales::percent_format()) + 
-   ggtitle("Porcentagem de Missing por Região") +
+   ggtitle("Análise da Porcentagem de Missing por Estado") +
    theme(plot.title = element_text(hjust = 0.5),
          plot.subtitle = element_text(hjust = 0.5, size = 10)) + 
-   geom_text(aes(label = porcentagem_missing), vjust = 1.5)
+   geom_text(aes(label = porcentagem_missing), 
+             angle = 90, 
+             vjust = 0.5, 
+             hjust = 1.5)
 
 
 rm("df")
 ```
 
-------------------------------------------------------------------------
+## Base de Dados Combustíveis - Visão de missing estado RJ{#basecobustiveismissingrj}
 
 A próxima análise visa compreender a quantidade de missing da variável Valor de Compra nos municípios do Estado do RJ.
 
 ```{r Quantidade de missing da variável Valor de Compra no Estado do RJ, echo=TRUE}
-df <- combustiveis %>% dplyr::filter(., UF == "RJ") %>%
+df <- combustiveis %>% dplyr::filter(UF == "RJ") %>%
   dplyr::group_by(Municipio) %>%
   dplyr::mutate(n_linhas = 1) %>%
   dplyr::summarise(n_missing = sum(is.na(Valor_de_Compra))) %>%
   dplyr::arrange(desc(n_missing))
 
-df
 
-kable(df, format="latex")
+#kable(df, format="latex")
+knitr::kable(df, 
+             format="latex",
+             caption = "Quantidade de missing da variável Valor no Estado do RJ.",
+             align = "c",
+             booktabs = TRUE,
+             longtable = TRUE,
+             linesep = "",)
 ```
 
 É possível observar os cinco municípios com maior quantidade de missing encontram-se na região metropolitana do Rio de Janeiro.
@@ -481,138 +1380,84 @@ kable(df, format="latex")
 O gráfico a seguir desmonstra esta analise visualmente.
 
 ```{r Gráfico da quantidade de missing da variável Valor de Compra no Estado do RJ, echo=TRUE}
-ggplot(df, aes(x = reorder(Municipio, n_missing, decreasing = TRUE), y = n_missing)) + 
+ggplot(df, aes(x = reorder(Municipio, n_missing, decreasing = TRUE), 
+               y = n_missing)) + 
    geom_bar(stat = "identity") + 
-   labs(x = "Município", y = "Qtd de Missing", subtitle = "Variável Valor de Compra") + 
+   labs(x = "Município", 
+        y = "Qtd de Missing", 
+        subtitle = "Variável Valor de Compra") + 
    scale_y_continuous(labels = scales::comma_format()) + 
-   ggtitle("Análise de Missing no Estado do RJ") +
+   ggtitle("Análise da Quantidade de Missing no Estado do RJ") +
    theme(plot.title = element_text(hjust = 0.5),
-         plot.subtitle = element_text(hjust = 0.5, size = 10),
-         axis.text.x = element_text(angle = 90, hjust = 1)
+         plot.subtitle = element_text(hjust = 0.5, 
+                                      size = 10),
+         axis.text.x = element_text(angle = 90, 
+                                    hjust = 1)
    ) + 
    scale_fill_brewer(palette = "Set1")
 
 rm("df")
 ```
 
-------------------------------------------------------------------------
-
-Foi feita uma outra análise considerando a porcentagem de missing sobre a observação desta variável para cada Município do Rio de Janeiro.
+Foi feita uma segunda análise considerando a porcentagem de missing sobre a observação desta variável para cada Município do Rio de Janeiro.
 
 ```{r Porcentagem de missing da variável Valor de Compra por Município do RJ, echo=TRUE}
-df <- combustiveis %>% dplyr::filter(., UF == "RJ") %>%
+df <- combustiveis %>% dplyr::filter(UF == "RJ") %>%
   dplyr::group_by(Municipio) %>%
   dplyr::mutate(n_linhas = 1) %>%
   dplyr::summarise(n_missing = sum(is.na(Valor_de_Compra)),
-            n_linhas = sum(n_linhas), porcentagem_missing = round(n_missing / n_linhas, 2)) %>%
+            n_linhas = sum(n_linhas), 
+            porcentagem_missing = round(n_missing / n_linhas, 2)) %>%
   dplyr::arrange(desc(porcentagem_missing))
 
 df
 
-kable(df, format="latex")
+#kable(df, format="latex")
+knitr::kable(df, 
+             format="latex",
+             caption = "Porcentagem de missing da variável 
+             Valor de Compra por Município RJ.",
+             align = "c",
+             booktabs = TRUE,
+             longtable = TRUE,
+             linesep = "",)
 ```
 
 o gráfico abaixo demonstra visualmente esta análise.
 
-```{r Gráfico da porcentagem de missing da variável Valor de Compra por Região, echo=TRUE}
-ggplot(df, aes(x = reorder(Municipio, porcentagem_missing, decreasing = TRUE), y = porcentagem_missing)) + 
+```{r Gráfico da porcentagem de missing da variável Valor de Compra por Município, echo=TRUE}
+ggplot(df, aes(x = reorder(Municipio, 
+                           porcentagem_missing, 
+                           decreasing = TRUE), 
+               y = porcentagem_missing)) + 
    geom_bar(stat = "identity") + 
-   labs(x = "Município", y = "Porcentagem de Missing", subtitle = "Variável Valor de Compra") + 
+   labs(x = "Município", 
+        y = "Porcentagem de Missing", 
+        subtitle = "Variável Valor de Compra") + 
    scale_y_continuous(labels = scales::percent_format()) + 
-   ggtitle("Porcentagem de Missing por Município") +
+   ggtitle("Análise da Porcentagem de Missing por Município") +
    theme(plot.title = element_text(hjust = 0.5),
          plot.subtitle = element_text(hjust = 0.5, size = 10),
-         axis.text.x = element_text(angle = 90)) +  
+         axis.text.x = element_text(angle = 90, hjust = 1)) +  
    geom_text(aes(label = porcentagem_missing), angle = 90, vjust = 0.5, hjust = 1.5)
 
 rm("df")
 ```
+É possível observar nesta análise que o município de Mesquita que estava em último na análise de quantidade de missing agora é o primeiro. Para compreender melhor, é necessário entender a frequência relativa deste município na pesquisa. O que se pode deduzir neste primeiro momento é que 100% dos postos pesquisados não informaram o valor da variável alvo desta análise. Tal afirmação é observada pela quantidade de valores em n_linhas igual a n_missing, onde n_linhas representa a quatidade de postos pesquisados.
 
-# Tratamento das Datas
+É possível observar que somente Mesquita, dentre os cinco primeiros municípios, faz parte dos municípios da região metropolitana do Rio de Janeiro.
 
-```{r Padronizando a formatação das datas, echo=TRUE}
-if (length(arquivo_rds) <= 0) {
-   combustivel_agg$`Data da Coleta` <- transform_date_one(combustivel_agg$`Data da Coleta`)
-}
+***
 
-brent$Data <- transform_date_three(brent$Data)
-cambio_agg$V1 <- transform_date_two(cambio_agg$V1)
+## Realizando teste de Little para checar se os dados faltantes são completamente aleatórios{#testelittle}
+
+```{r Teste de little para dados faltantes de valor_de_compra, echo = FALSE}
+combustiveis %>% dplyr::select(Valor_de_Compra) %>% naniar::mcar_test()
 ```
 
-```{r Salvando Binário, echo=TRUE}
-if (length(arquivo_rds) <= 0) {
-   saveRDS(combustivel_agg, "Database/combustivel_agg.rds")
-}
+## Realizando a imputação de dados{#imputandodados}
 
-rm("arquivo_rds")
-rm("folder_database")
-rm("folder_dataset")
-```
-
-
-
-
-
-
-
-```{r}
-summarytools::descr(combustivel_agg)
-```
-
-```{r}
-summarytools::descr(df)
-```
-
-## Base de Dados Câmbio
-
-```{r Conhecendo as variáveis da base de dados Câmbio, echo = TRUE}
-str(cambio_agg)
-cambio_agg %>% dlookr::diagnose()
-```
-
-```{r Selecionando as variáveis a serem utilizadas na análise, echo = TRUE}
-cambio <- cambio_agg[, c(1, 5)]
-colnames(cambio) <- c("Data", "Taxa_Cambio")
-```
-
-## Base de Dados Brent
-
-```{r Conhecendo as variáveis da base de dados Brent, echo = TRUE}
-str(brent)
-brent %>% dlookr::diagnose()
-```
-
-# Criando uma base de dados para a respectiva análise
-
-```{r Nova base de dados de revendas dos derivados do petróleo no Brasil para análise, echo=TRUE}
-revenda_Br <- combustivel_agg %>% dplyr::select(Revenda, `CNPJ da Revenda`) %>% base::unique()
-saveRDS(revenda_Br, "Database/revenda_Br.rds")
-```
-
-```{r Nova base de dados dos derivados do petróleo no Brasil para análise, echo=TRUE}
-dpGD_Br <- combustivel_agg %>% 
-   dplyr::select(
-      `Data da Coleta`,
-      `Regiao - Sigla`, 
-      `Estado - Sigla`, 
-      Municipio, 
-      `CNPJ da Revenda`,
-      Bandeira,
-      Produto, 
-      `Unidade de Medida`, 
-      `Valor de Venda`, 
-      `Valor de Compra`) %>% 
-   dplyr::rename(
-      Região = `Regiao - Sigla`, 
-      Estado = `Estado - Sigla`, 
-      Município = Municipio, 
-      CNPJ_da_Revenda = `CNPJ da Revenda`, 
-      Data = `Data da Coleta`, 
-      Valor_de_Venda = `Valor de Venda`, 
-      Valor_de_Compra = `Valor de Compra`, 
-      Unidade_de_Medida = `Unidade de Medida` 
-      ) %>%  
-   dplyr::filter(Produto %in% c("GASOLINA","DIESEL"))
-
-saveRDS(dpGD_Br, "Database/dpGD_Br.rds")
+```{r Imputando dados, echo = FALSE}
+combustiveis1 <- combustiveis
+mice(combustiveis1, method ="norm.predict", seed = 1, m = 1, print = FALSE)
 ```
