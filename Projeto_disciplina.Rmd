@@ -809,7 +809,7 @@ Já a mediana por ser uma estatística de ordem, não é sensível a dados que a
 Histograma da variável Valor de Venda por Produto no Brasil.
 
 ```{r Histograma do valor do produto vendido nos locais pesquisados no Brasil,echo=TRUE}
-graph_file <- paste("Histograma da distribuição do Valor de Venda no Brasil do produto", produto_filtro, sep = " ")
+graph_file <- paste("Histograma da distribuição do Valor de Venda no Brasil do produto", filter_produto, sep = " ")
 extensao_file <- "jpg"
 
 sample_combustiveis_agg %>%
@@ -1373,9 +1373,6 @@ A hipótese alternativa: A mediana das diferenças (após - durante) entre as di
 ```{r Teste pareamento menor que de wilcox após e durante a politica de preco (ano quarto da pesquisa), echo = FALSE}
 wilcox.test(apos.politica$Valor_de_Venda, durante.politica$Valor_de_Venda, paired = T, exact = F, alternative = "less")
 ```
-
-
-##########################################
 
 # Manipulando base de dados com dados faltantes e outliers{#manipulandomissingeout}
 
