@@ -1387,13 +1387,13 @@ A ausência de dados ou lacunas no conjunto de dados em uma análise, além de p
 ## Índice de completude{#indicedecompletude}
 
 ```{r Descrevendo os dados faltantes pelo indice de completude,echo=TRUE}
-combustiveis_glp %>% dlookr::diagnose()
+sample_combustiveis_agg %>% dlookr::diagnose()
 
-combustiveis_glp %>% naniar::miss_var_summary()
+sample_combustiveis_agg %>% naniar::miss_var_summary()
 
-combustiveis_glp %>% gg_miss_var()
+sample_combustiveis_agg %>% gg_miss_var()
 
-combustiveis_glp %>% gg_miss_upset()
+#sample_combustiveis_agg %>% gg_miss_upset()
 
 ```
 
@@ -1406,7 +1406,7 @@ Para uma melhor compreensão dos missing existentes nesta variável, algumas inv
 A primeira análise visa visualizar o missing da variável por Regiao.
 
 ```{r Quantidade de missing da variável Valor de Compra por Região, echo=TRUE}
-df <- combustiveis %>%
+df <- sample_combustiveis_agg %>%
   dplyr::group_by(Regiao) %>%
   dplyr::mutate(n_linhas = 1) %>%
   dplyr::summarise(n_missing = sum(is.na(Valor_de_Compra))) %>%
@@ -1446,7 +1446,7 @@ rm("df")
 Foi feita uma segunda análise considerando a porcentagem de missing sobre a observação desta variável para cada região. É possível observar uma uniformização nas porcentagens entre as regiões.
 
 ```{r Porcentagem de missing da variável Valor de Compra por Região, echo=TRUE}
-df <- combustiveis %>%
+df <- sample_combustiveis_agg %>%
   dplyr::group_by(Regiao) %>%
   dplyr::mutate(n_linhas = 1) %>%
   dplyr::summarise(n_missing = sum(is.na(Valor_de_Compra)),
@@ -1487,7 +1487,7 @@ rm("df")
 A mesma análise realizada por estado, foi feita por Estado.
 
 ```{r Quantidade de missing da variável Valor de Compra por Estado, echo=TRUE}
-df <- combustiveis %>%
+df <- sample_combustiveis_agg %>%
    dplyr::group_by(UF) %>%
    dplyr::mutate(n_linhas = 1) %>%
    dplyr::summarise(n_missing = sum(is.na(Valor_de_Compra))) %>%
@@ -1522,7 +1522,7 @@ rm("df")
 Foi feita uma segunda análise considerando a porcentagem de missing sobre a observação desta variável para cada estado. É possível observar valores próximos.
 
 ```{r Porcentagem de missing da variável Valor de Compra por Estado, echo=TRUE}
-df <- combustiveis %>%
+df <- sample_combustiveis_agg %>%
   dplyr::group_by(UF) %>%
   dplyr::mutate(n_linhas = 1) %>%
   dplyr::summarise(n_missing = sum(is.na(Valor_de_Compra)),
@@ -1568,7 +1568,7 @@ rm("df")
 A próxima análise visa compreender a quantidade de missing da variável Valor de Compra nos municípios do Estado do RJ.
 
 ```{r Quantidade de missing da variável Valor de Compra no Estado do RJ, echo=TRUE}
-df <- combustiveis %>% dplyr::filter(UF == "RJ") %>%
+df <- sample_combustiveis_agg %>% dplyr::filter(UF == "RJ") %>%
   dplyr::group_by(Municipio) %>%
   dplyr::mutate(n_linhas = 1) %>%
   dplyr::summarise(n_missing = sum(is.na(Valor_de_Compra))) %>%
@@ -1612,7 +1612,7 @@ rm("df")
 Foi feita uma segunda análise considerando a porcentagem de missing sobre a observação desta variável para cada Município do Rio de Janeiro.
 
 ```{r Porcentagem de missing da variável Valor de Compra por Município do RJ, echo=TRUE}
-df <- combustiveis %>% dplyr::filter(UF == "RJ") %>%
+df <- sample_combustiveis_agg %>% dplyr::filter(UF == "RJ") %>%
   dplyr::group_by(Municipio) %>%
   dplyr::mutate(n_linhas = 1) %>%
   dplyr::summarise(n_missing = sum(is.na(Valor_de_Compra)),
@@ -1633,7 +1633,7 @@ knitr::kable(df,
              linesep = "",)
 ```
 
-o gráfico abaixo demonstra visualmente esta análise.
+O gráfico abaixo demonstra visualmente esta análise.
 
 ```{r Gráfico da porcentagem de missing da variável Valor de Compra por Município, echo=TRUE}
 ggplot(df, aes(x = reorder(Municipio, 
@@ -1662,7 +1662,7 @@ rm("df")
 ## Realizando teste de Little para checar se os dados faltantes são completamente aleatórios{#testelittle}
 
 ```{r Teste de little para dados faltantes de valor_de_compra, echo = TRUE}
-combustiveis %>% dplyr::select(Valor_de_Compra) %>% naniar::mcar_test()
+sample_combustiveis_agg %>% dplyr::select(Valor_de_Compra) %>% naniar::mcar_test()
 # O resultado abaixo rejeita a hipótese de que os dados faltantes são completamente aleatórios, pois o P-Valor é zero.
 # Portanto, neste cenário, é necessário verificar se os dados faltantes são aleatórios ou não aleatórios.
 ```
@@ -1670,6 +1670,7 @@ combustiveis %>% dplyr::select(Valor_de_Compra) %>% naniar::mcar_test()
 ## Realizando a imputação de dados{#imputandodados}
 
 ```{r Imputando dados, echo = TRUE}
-combustiveis1 <- combustiveis
-mice(combustiveis1, method ="norm.predict", seed = 1, m = 1, print = FALSE)
+sample_combustiveis_agg_input <- sample_combustiveis_agg
+
+mice(sample_combustiveis_agg_input, method ="norm.predict", seed = 1, m = 1, print = FALSE)
 ```
