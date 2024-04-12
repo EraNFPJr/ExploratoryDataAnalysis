@@ -13,10 +13,9 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_knit$set(root.dir = 'D:/Study/Infnet/DataScience/ExploratoryDataAnalysis/Workspace/GitHub/ExploratoryDataAnalysis')
-#                        'C:/Users/eraldojr/Documents/Teste/ExploratoryDataAnalysis/ExploratoryDataAnalysis')
 knitr::opts_chunk$set(echo = TRUE, 
-                      message = TRUE, 
-                      warning = TRUE, 
+                      message = FALSE, 
+                      warning = FALSE, 
                       fig.path = 'Images/',
                       fig.align = 'center', 
                       fig.retina = 2,
@@ -32,54 +31,83 @@ knitr::opts_chunk$set(echo = TRUE,
 
 # Sumário
 
-1. [**Introdução**](#introdução)
+1. [Introdução](#introdução)
 
-2. [**Preparando o Ambiente**](#preparandooambiente)
-      + [**Pacotes**](#pacotes)
-      + [**Funções Criadas**](#funcoes)
+2. [Preparando o Ambiente](#preparandooambiente)
+	+ [Pacotes](#pacotes)
+	+ [Funções Criadas](#funcoes)
 
-3. [**Dos Dados**](#dosdados)
-      + [**Contexto**](#contexto)
-      + [**Fonte dos dados**](#fontededados)
+3. [Dos Dados](#dosdados)
+	+ [Contexto](#contexto)
+	+ [Fonte dos dados](#fontededados)
 
-4. [**Realizando o carregamento dos dados**](#carregandoosdados)
+4. [Realizando a carga dos dados](#carregandoosdados)
 
-5. [**Visão Inicial dos Dados**](#visaodosdados)
+5. [Visão Inicial dos Dados](#visaodosdados)
 
-6. [**Analisando os tipos de cada variável nas bases**](#analisandobases)
-      + [**Base de Dados Combustíveis - Visão da pesquisa nacional**](#basecobustiveis)
-      + [**Base de Dados Câmbio**](#basecambio)
-      + [**Base de Dados Brent**](#basebrent)
-      + [**Base de Dados PPI**](#baseppi)
+6. [Analisando os tipos das variáveis nas bases](#analisandobases)
+	+ [Base de Dados Combustíveis](#basecobustiveis)
+	+ [Base de Dados Câmbio](#basecambio)
+	+ [Base de Dados Brent](#basebrent)
+	+ [Base de Dados PPI](#baseppi)
 
-7. [**Tratamento das Datas**](#tratandodatas)
+7. [Normatizando o nome e escolhendo as variáveis](#normalizandovariaveis)
 
-8. [**Análise de frequências de variáveis qualitativas**](#analisefreqvarquali)
+8. [Tratamento e padronizando as Datas](#tratandodatas)
 
-9. [**Gerando dados calculados**](#calculodedados)
+9. [Gerando dados calculados](#calculodedados)
 
-10. [**Merge das bases de dados**](#merge)
+10. [Merge das bases de dados](#merge)
 
-11. [**Calculando as estatísticas descritiva dos dados**](#estatisticadescritiva)
+11. [Análise de frequências de variáveis qualitativas](#analisefreqvarquali)
 
-12. [**Análise descritiva e de histogramas das variáveis contínuas**](#analisedescritivaehistograma)
-      + [**Análise descritiva das variáveis contínuas**](#analisedescritivavarcontinua)
-      + [**Histogramas das variáveis contínuas**](#histogramadasvarcontinuas)
+12. [Análise descritiva e de histogramas das variáveis contínuas](#analisedescritivaehistograma)
+	+ [Análise descritiva das variáveis contínuas](#analisedescritivavarcontinua)
+	+ [Histogramas das variáveis contínuas](#histogramadasvarcontinuas)
 
-13. [**Calculando a dispersão e as correlações**](#calcDispCorre)
-      + [**Para a Gasolina**](#paragasolina)
-      + [**Para a Diesel**](#paradiesel)
-      + [**Para a Diesel S10**](#paradieselS10)
-      + [**Para GLP 13Kg**](#paraGLP13)
+13. [Realizando o teste de Hipíotese](#testedehipotese)
+	+ [Hipótese](#hipotese)
+	+ [Teste de Shapiro Wilk](#testeShapiroWilk)
 
-14. [**Analisando a normalidade dos dados**](#analisandonormaldados)
+		+ [Após Política de Preço](#apospoliticapreco)
+			+ [Aplicando o teste de Shapiro Wilk](#testeShapiroapos)
+			+ [Aplicando o QQ-Plot](#qqplotapos)
+		+ [Durante a Política de Preço](#durantepoliticapreco)
+			+ [Primeiro ano da análise - 01/03/2020](#primeiroanoanalise)
+				+ [Aplicando o teste de Shapiro Wilk](#testeShapiroDurante1)
+				+ [Aplicando o QQ-Plot](#qqplotdurante1)
+				+ [Teste de Wilcoxon para checar o pareamento](#wilcoxonparemaneto1)
+				+ [Teste de Wilcoxon para checar o pareamento (Maior que)](#wilcoxonmaiorque1)
+				+ [Teste de Wilcoxon para checar o pareamento (Menor que)](#wilcoxonmenorque1)
+			+ [Segundo ano da análise - 01/03/2021](#segundoanoanalise)
+				+ [Aplicando o teste de Shapiro Wilk](#testeShapiroDurante2)
+				+ [Aplicando o QQ-Plot](#qqplotdurante2)
+				+ [Teste de Wilcoxon para checar o pareamento](#wilcoxonparemaneto2)
+				+ [Teste de Wilcoxon para checar o pareamento (Maior que)](#wilcoxonmaiorque2)
+				+ [Teste de Wilcoxon para checar o pareamento (Menor que)](#wilcoxonmenorque2)
+			+ [Terceiro ano da análise - 01/03/2022](#terceiroanoanalise)
+				+ [Aplicando o teste de Shapiro Wilk](#testeShapiroDurante3)
+				+ [Aplicando o QQ-Plot](#qqplotdurante3)
+				+ [Teste de Wilcoxon para checar o pareamento](#wilcoxonparemaneto3)
+				+ [Teste de Wilcoxon para checar o pareamento (Maior que)](#wilcoxonmaiorque3)
+				+ [Teste de Wilcoxon para checar o pareamento (Menor que)](#wilcoxonmenorque3)
+			+ [Quarto ano da análise - 01/03/2023](#quartoanoanalise)
+				+ [Aplicando o teste de Shapiro Wilk](#testeShapiroDurante4)
+				+ [Aplicando o QQ-Plot](#qqplotdurante4)
+				+ [Teste de Wilcoxon para checar o pareamento](#wilcoxonparemaneto4)
+				+ [Teste de Wilcoxon para checar o pareamento (Maior que)](#wilcoxonmaiorque4)
+				+ [Teste de Wilcoxon para checar o pareamento (Menor que)](#wilcoxonmenorque4)
 
-15. [**Manipulando base de dados com dados faltantes e outliers**](#manipulandomissingeout)
-	   + [**Índice de completude**](#indicedecompletude)
-      + [**Base de Dados Combustíveis - Visão de missing nacional**](#basecobustiveismissingnacional)
-      + [**Base de Dados Combustíveis - Visão de missing estado RJ**](#basecobustiveismissingrj)
-      + [**Realizando teste de Little para checar se os dados faltantes são completamente aleatórios**](#testelittle)
-      + [**Realizando a imputação de dados**](#imputandodados)
+14. [Manipulando base de dados com dados faltantes e outliers](#manipulandomissingeout)
+	+ [Índice de completude](#indicedecompletude)
+	+ [Base de Dados Combustíveis - Visão de missing nacional](#basecobustiveismissingnacional)
+	+ [Base de Dados Combustíveis - Visão de missing estado RJ](#basecobustiveismissingrj)
+	+ [Realizando teste de Little para checar se os dados faltantes são completamente aleatórios](#testelittle)
+	+ [Realizando a imputação de dados](#imputandodados)
+
+15. [Tela do Sistema - Shiny](#telaShiny)
+
+16. [Github](#github)
 
 \newpage
 
@@ -106,7 +134,18 @@ Durante a análise foi verificado a necessidade de utilização de alguns pacote
 
 ```{r Lista de pacotes, echo=TRUE}
 # Lista com todos os pacotes
-package <- c("tidyverse", "ggplot2", "summarytools", "data.table", "knitr", "dlookr", "ggpubr", "naniar", "corrplot", "mice", "purrr", "simputation")
+package <- c("tidyverse", 
+             "ggplot2", 
+             "summarytools", 
+             "data.table", 
+             "knitr", 
+             "dlookr", 
+             "ggpubr", 
+             "naniar", 
+             "corrplot", 
+             "mice", 
+             "purrr", 
+             "simputation")
 ```
 
 Com a lista de pacotes mapeados, a próxima etapa tem como foco verificar se todos os pacotes necessários para a análise se encontram instalados. Caso não estejam instalados, o processo de instalação será automático.
@@ -551,21 +590,23 @@ Foi gerada uma nova base de dados, tendo como descrição o termo calc de calcul
 Após a realização do filtro e os devidos cálculos, realizar-se-á nesta etapa o *merge* das bases de dados.
 
 ```{r Merge das bases de dados para criação de uma nova base para análise, echo=TRUE}
-sample_combustiveis_agg <- dplyr::bind_rows(base::merge(sample_combustiveis_agg %>% 
-                                                           dplyr::filter(Produto == "DIESEL" | Produto == "DIESEL S10"), 
-                                                        calc_ppi %>% 
-                                                           dplyr::filter(Produto == "Diesel") %>% 
-                                                           dplyr::select(Data, PPI),
-                                                        by = "Data",
-                                                        all = TRUE),
-                                            base::merge(sample_combustiveis_agg %>% 
-                                                           dplyr::filter(Produto == "GASOLINA"),
-                                                        calc_ppi %>% 
-                                                           dplyr::filter(Produto == "Gasolina") %>% 
-                                                           dplyr::select(Data, PPI),
-                                                        by = "Data",
-                                                        all = TRUE)
-                                            )
+sample_combustiveis_agg <- 
+   dplyr::bind_rows(base::merge(sample_combustiveis_agg %>%
+                                   dplyr::filter(Produto == "DIESEL" | 
+                                                 Produto == "DIESEL S10"),
+                                calc_ppi %>% 
+                                   dplyr::filter(Produto == "Diesel") %>% 
+                                   dplyr::select(Data, PPI),
+                                by = "Data",
+                                all = TRUE),
+                    base::merge(sample_combustiveis_agg %>% 
+                                   dplyr::filter(Produto == "GASOLINA"),
+                                calc_ppi %>% 
+                                   dplyr::filter(Produto == "Gasolina") %>% 
+                                   dplyr::select(Data, PPI),
+                                by = "Data",
+                                all = TRUE)
+                    )
 
 sample_combustiveis_agg <- base::merge(sample_combustiveis_agg, 
                                           origin_brent, 
@@ -613,7 +654,8 @@ sample_combustiveis_agg %>%
 Foi constatado durante as análises que no mês 09 de 2020 não ocorreu nenhuma pesquisa nos postos de combustíveis. Por este motivo, foi necessário remover o respectivo mês da base sample_combustiveis_agg.
 
 ```{r Remover mês de setembro de 2020 da base, echo=TRUE}
-sample_combustiveis_agg <- sample_combustiveis_agg %>% dplyr::filter(!Data == "2020-09-01")
+sample_combustiveis_agg <- sample_combustiveis_agg %>% 
+   dplyr::filter(!Data == "2020-09-01")
 ```
 
 Durando esta etapa de análise de frequências de variáveis qualitativas, vamos trabalhar para identificar os indivíduos de interesse no experimento.
@@ -727,7 +769,8 @@ ggsave(paste(graph_file, extensao_file, sep = "."), path = "./Images")
 ```{r Heatmat entre município e produtos da UF escolhida, echo = TRUE}
 filter_uf = "RJ"
 filter_produto = c("GASOLINA","DIESEL","DIESEL S10")
-graph_file <- paste("Heatmat do Valor de Venda dos combustíveis no Estado",filter_uf, sep = " ")
+graph_file <- paste("Heatmat do Valor de Venda dos combustíveis no Estado",
+                    filter_uf, sep = " ")
 extensao_file <- "jpg"
 
 sample_combustiveis_agg %>% 
@@ -809,7 +852,8 @@ Já a mediana por ser uma estatística de ordem, não é sensível a dados que a
 Histograma da variável Valor de Venda por Produto no Brasil.
 
 ```{r Histograma do valor do produto vendido nos locais pesquisados no Brasil,echo=TRUE}
-graph_file <- paste("Histograma da distribuição do Valor de Venda no Brasil do produto", filter_produto, sep = " ")
+graph_file <- paste("Histograma da distribuição do Valor de Venda no Brasil do produto", 
+                    filter_produto, sep = " ")
 extensao_file <- "jpg"
 
 sample_combustiveis_agg %>%
@@ -836,7 +880,8 @@ ggsave(paste(graph_file, extensao_file, sep = "."), path = "./Images")
 Histograma da variável Valor de Venda por Produto na UF selecionada.
 
 ```{r Histograma do valor do produto vendido nos locais pesquisados na UF selecionada,echo=TRUE}
-graph_file <- paste("Histograma da distribuição do Valor de Venda do produto",filter_uf,"do produto",filter_produto, sep = " ")
+graph_file <- paste("Histograma da distribuição do Valor de Venda do produto",
+                    filter_uf,"do produto",filter_produto, sep = " ")
 extensao_file <- "jpg"
 
 sample_combustiveis_agg %>%
@@ -878,7 +923,14 @@ Portanto, pode-se dizer que para que haja simetria e o formato de sino, é neces
 
 ```{r, Filtrando os dados e descrevendo a base}
 sample_combustiveis_agg_periodo <- sample_combustiveis_agg %>% 
-   dplyr::select(UF, Produto, Data, Valor_de_Venda, Cambio, Brent_USD_Barril, Brent_Real_Barril, PPI) %>% 
+   dplyr::select(UF, 
+                 Produto, 
+                 Data, 
+                 Valor_de_Venda, 
+                 Cambio, 
+                 Brent_USD_Barril, 
+                 Brent_Real_Barril, 
+                 PPI) %>% 
    dplyr::group_by(UF, Produto, Data) %>%
    dplyr::summarise(
       Valor_de_Venda = mean(Valor_de_Venda), 
@@ -903,7 +955,8 @@ sample_combustiveis_agg_periodo <- sample_combustiveis_agg %>%
 Calculando os histogramas para o mesmo evento em diferentes instantes de tempo.
 
 ```{r Calculando os histogramas para o mesmo evento em diferentes instantes de tempo, echo=TRUE}
-graph_file <- paste("Histrograma da evolução temporal no Brasil do produto", filter_produto, sep = " ")
+graph_file <- paste("Histrograma da evolução temporal no Brasil do produto", 
+                    filter_produto, sep = " ")
 extensao_file <- "jpg"
 
 sample_combustiveis_agg_periodo %>% 
@@ -929,7 +982,12 @@ extensao_file <- "jpg"
 
 sample_combustiveis_agg %>%
    dplyr::filter(Produto == filter_produto) %>%
-   dplyr::select(Data, Valor_de_Venda, Cambio, Brent_USD_Barril, Brent_Real_Barril, PPI) %>% 
+   dplyr::select(Data, 
+                 Valor_de_Venda, 
+                 Cambio, 
+                 Brent_USD_Barril, 
+                 Brent_Real_Barril, 
+                 PPI) %>% 
    dplyr::group_by(Data) %>% 
    dplyr::summarise(
       Valor_de_Venda = mean(Valor_de_Venda),
@@ -1021,12 +1079,20 @@ ggsave(paste(graph_file, extensao_file, sep = "."), path = "./Images")
 Analise temporal do combustivel vs Cambio vs Brent vc PPI por um determinado UF.
 
 ```{r Analise temporal do combustivel vs Cambio vs Brent vc PPI por um determinado UF, echo=TRUE}
-graph_file <- paste("Evolução temporal no Estado do",filter_uf, "do produto",filter_produto, sep = " ")
+graph_file <- paste("Evolução temporal no Estado do",
+                    filter_uf, 
+                    "do produto",filter_produto, sep = " ")
 extensao_file <- "jpg"
 
 sample_combustiveis_agg %>%
    dplyr::filter(Produto == filter_produto & UF == filter_uf) %>%
-   dplyr::select(UF, Data, Valor_de_Venda, Cambio, Brent_USD_Barril, Brent_Real_Barril, PPI) %>% 
+   dplyr::select(UF, 
+                 Data, 
+                 Valor_de_Venda, 
+                 Cambio, 
+                 Brent_USD_Barril, 
+                 Brent_Real_Barril, 
+                 PPI) %>% 
    dplyr::group_by(Data) %>% 
    dplyr::summarise(
       Valor_de_Venda = mean(Valor_de_Venda),
@@ -1206,7 +1272,7 @@ A hipótese alternativa: A mediana das diferenças (após - durante) entre as di
 wilcox.test(apos.politica$Valor_de_Venda, durante.politica$Valor_de_Venda, paired = T, exact = F, alternative = "less")
 ```
 
-#### Segundo ano da análise - 01/03/2021
+#### Segundo ano da análise - 01/03/2021{#segundoanoanalise}
 
 ##### Aplicando o teste de Shapiro Wilk{#testeShapiroDurante2}
 
@@ -1262,7 +1328,7 @@ A hipótese alternativa: A mediana das diferenças (após - durante) entre as di
 wilcox.test(apos.politica$Valor_de_Venda, durante.politica$Valor_de_Venda, paired = T, exact = F, alternative = "less")
 ```
 
-#### Terceiro ano da análise - 01/03/2022
+#### Terceiro ano da análise - 01/03/2022{#terceiroanoanalise}
 
 ##### Aplicando o teste de Shapiro Wilk{#testeShapiroDurante3}
 
@@ -1318,7 +1384,7 @@ A hipótese alternativa: A mediana das diferenças (após - durante) entre as di
 wilcox.test(apos.politica$Valor_de_Venda, durante.politica$Valor_de_Venda, paired = T, exact = F, alternative = "less")
 ```
 
-#### Quarto ano da análise - 01/03/2023
+#### Quarto ano da análise - 01/03/2023{#quartoanoanalise}
 
 ##### Aplicando o teste de Shapiro Wilk{#testeShapiroDurante4}
 
@@ -1373,6 +1439,8 @@ A hipótese alternativa: A mediana das diferenças (após - durante) entre as di
 ```{r Teste pareamento menor que de wilcox após e durante a politica de preco (ano quarto da pesquisa), echo = FALSE}
 wilcox.test(apos.politica$Valor_de_Venda, durante.politica$Valor_de_Venda, paired = T, exact = F, alternative = "less")
 ```
+
+***
 
 # Manipulando base de dados com dados faltantes e outliers{#manipulandomissingeout}
 
@@ -1663,8 +1731,6 @@ rm("df")
 
 ```{r Teste de little para dados faltantes de valor_de_compra, echo = TRUE}
 sample_combustiveis_agg %>% dplyr::select(Valor_de_Compra) %>% naniar::mcar_test()
-# O resultado abaixo rejeita a hipótese de que os dados faltantes são completamente aleatórios, pois o P-Valor é zero.
-# Portanto, neste cenário, é necessário verificar se os dados faltantes são aleatórios ou não aleatórios.
 ```
 
 ## Realizando a imputação de dados{#imputandodados}
@@ -1674,3 +1740,19 @@ sample_combustiveis_agg_input <- sample_combustiveis_agg
 
 mice(sample_combustiveis_agg_input, method ="norm.predict", seed = 1, m = 1, print = FALSE)
 ```
+
+# Tela do Sistema - Shiny{#telaShiny}
+
+![Tela do App](Images/TelaShinyInto.jpeg)
+
+![Tela do App](Images/TelaShiny.jpeg)    
+
+
+# Github{#github}
+
+Todo o conteúdo da análise aqui proposta encontra-se no [**GitHub**.](https://github.com/EraNFPJr/ExploratoryDataAnalysis/tree/main)
+
+Segue abaixo tela do Github.
+
+![Tela do GitHub](Images/Github.jpeg)
+
