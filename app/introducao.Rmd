@@ -1,0 +1,48 @@
+---
+title: "Contexto da Análise"
+output: html_document
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+---
+
+# Dos Dados
+
+## Contexto
+
+O valor de venda dos derivados de petróleo aos consumidores brasileiros é sempre um assunto polêmico. Há muitas variáveis que influenciam na flutuação do valor de venda. Para o consumidor final o que importa é o quanto estas flutuações impactam no orçamento mensal da família.
+
+Os meios de comunicação frequentemente noticiam o aumento ou a redução dos derivados do petróleo diante da flutuação de algumas variáveis, como por exemplo o brent e o câmbio.
+
+A flutuação destas variáveis e de outras são oriundas de acontecimentos mundiais. Os grandes canais de comunicação noticiam periodicamente estes eventos.
+
+-   O ["Petróleo sobe mais de 3% em meio a tensões no Oriente Médio"](https://www.cnnbrasil.com.br/economia/mercado/petroleo-sobe-mais-de-3-em-meio-a-tensoes-no-oriente-medio/) (CNN-Brasil, 2024).
+-   A ["Guerra e petróleo: veja reações mais drásticas da commodity a grandes conflitos"](https://www.cnnbrasil.com.br/economia/guerra-e-petroleo-veja-reacoes-mais-drasticas-da-commodity-a-grandes-conflitos/) (CNN-Brasil, 2023).
+-   A ["Gerra no Oriente Médio pode aumentar preço do diesel, diz Petrobras"](https://agenciabrasil.ebc.com.br/economia/noticia/2023-10/guerra-no-oriente-medio-pode-aumentar-preco-do-diesel-diz-petrobras) (AgênciaBrasil-EBC, 2023).
+
+Além das variáveis, uma sigla foi introduzida na vida dos brasileiros diante a mudança da política de preço praticada pela petrolífera brasileira (Petrobras). Esta sigla é conhecida como o Preço de Paridade de Importação - PPI.
+
+Um breve histórico da adoção do PPI pela Petrobras e seus desdobramentos políticos pode ser lido na matéria ["Gasolina cara, lucro recorde: como foi o PPI, antiga política da Petrobras"](https://economia.uol.com.br/noticias/redacao/2023/05/16/como-funcionava-o-ppi-antiga-politica-de-precos-da-petrobras.htm) (Economia UOL, 2023)
+
+O fim da adoção do PPI pela Petrobras em 16 de maio de 2023 repercutiu nacionalmente.
+
+-   A ["Petrobras anuncia fim da paridade internacional de preços do petróleo"](https://www.cnnbrasil.com.br/economia/petrobras-anuncia-fim-da-paridade-internacional-de-precos-do-petroleo/#:~:text=Petrobras%20anuncia%20fim%20da%20paridade%20internacional%20de%20pre%C3%A7os%20do%20petr%C3%B3leo,-Paridade%20de%20importa%C3%A7%C3%A3o&text=A%20Petrobras%20anunciou%20nesta%20ter%C3%A7a,economia%20da%20CNN%2C%20Raquel%20Landim.) (CNN Brasil, 2023). ["Para Ineep, fim do PPI na Petrobras trouxe maior estabilidade de preço dos combustíveis"](https://www.infomoney.com.br/mercados/para-ineep-fim-do-ppi-na-petrobras-trouxe-maior-estabilidade-de-preco-dos-combustiveis/) (InfoMoney, 2024).
+-   A ["Gasolina da Petrobras está 17% mais barata que preço internacional"](https://www.metropoles.com/negocios/gasolina-da-petrobras-esta-17-mais-barata-que-preco-internacional) (Metrópoles, 2024).
+
+Em resumo, o experimento visa compreender o preço de venda de combustíveis entre o período de adoção da política de preço da Petrobras e o fim da adoção desta política.
+
+O espaço amostral para o experimento envolve os combustíveis Diesel, Diesel S10 e Gasolina pesquisados através de pesquisa nos postos de combustíveis selecionados pela ANP.
+
+O período de coleta dos dados ocorrerá entre janeiro de 2020 até março de 2024.
+
+## Fonte dos dados
+
+Um fator crucial para qualquer análise é a busca de fontes de dados abertos confiáveis. Portanto, buscou-se através de sites oficiais de governo e instituições renomadas os dados necessários para a respectiva análise.
+
+O primeiro dado a ser obtido foi a ["Série Histórica de Preços de Combustíveis e de GLP"](https://www.gov.br/anp/pt-br/centrais-de-conteudo/dados-abertos/serie-historica-de-precos-de-combustiveis) (Dados Abertos-ANP, 2024). Esta fonte de dados possui os dados das pesquisas realizadas até março de 2024. Os dados utilizandos para esta análise foram os dados oriundos das pesquisas realizadas até março de 2024.
+
+Ainda no site da ANP, foi utilizado os ["Preços de paridade de importação"](https://www.gov.br/anp/pt-br/assuntos/precos-e-defesa-da-concorrencia/precos/precos-de-paridade-de-importacao) (PPI-ANP, 2024).
+
+O Brent foi obtido através da *U.S. Energy information Administration - EIA*. Os dados obtidos fazem parte da visão histórica dos dados em [*PETROLEUM & OTHER LIQUIDS*](https://www.eia.gov/dnav/pet/hist/rbrteM.htm) (EIA, 2024).
+
+A série histórica da taxa cambial foi obtida através do site do Banco Central do Brasil, em sua área ["Cotações e boletins"](https://www.bcb.gov.br/estabilidadefinanceira/historicocotacoes) (BCB, 2024).
+
+
